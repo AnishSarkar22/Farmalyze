@@ -4,6 +4,7 @@
 - [Crop Recommendation Dataset](https://www.kaggle.com/atharvaingle/crop-recommendation-dataset) – Predicts suitable crops based on soil and weather data.
 - [Fertilizer Suggestion Dataset](https://github.com/Gladiator07/Harvestify/blob/master/Data-processed/fertilizer.csv) – Recommends fertilizers based on soil nutrient analysis.
 - [Plant Disease Detection Dataset](https://www.kaggle.com/vipoooool/new-plant-diseases-dataset) – Image dataset for plant disease classification.
+- [Plant Disease Identification Model](https://huggingface.co/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification) - A pre-trained MobileNetV2 model hosted on Hugging Face, fine-tuned on the Kaggle Plant Diseases Dataset. Supports identification of 38 different plant diseases across various crop species.
 
 ---
 
@@ -62,6 +63,59 @@ This web-based platform includes three key applications:
 ---
 ## How to Run project
 
+### For backend
+
+1. **Create and Activate Virtual Environment**
+
+   **For Mac/Linux:**
+   ```bash
+   # Create virtual environment
+   python3 -m venv venv
+
+   # Activate virtual environment
+   source venv/bin/activate
+   ```
+
+   **For Windows:**
+   ```bash
+   # Create virtual environment
+   python -m venv venv
+
+   # Activate virtual environment
+   venv\Scripts\activate
+   ```
+
+2. **Install Required Dependencies**
+   ```bash
+   cd backend
+   # Install all required packages
+   pip install -r requirements.txt
+   ```
+
+3. **Set up Environment Variables** (optional)
+   ```bash
+   # For Mac/Linux
+   export FLASK_APP=app.py
+   export FLASK_ENV=development
+
+   # For Windows
+   set FLASK_APP=app.py
+   set FLASK_ENV=development
+   ```
+
+4. **Run the Flask Application**
+   ```bash
+   # Start the Flask server
+   flask run
+   ```
+   The application will be available at `http://127.0.0.1:5000/`
+
+**Note:** 
+- Make sure you have Python 3.9 installed on your system
+- To deactivate the virtual environment when done, simply type:
+  ```bash
+  deactivate
+  ```
 
 ---
 
