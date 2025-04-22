@@ -108,7 +108,7 @@ This web-based platform includes three key applications:
    # Start the Flask server
    flask run
    ```
-   or
+   or (below recommended for development purposes)
    ```bash
    # run the below code inside backend directory
    python app.py
