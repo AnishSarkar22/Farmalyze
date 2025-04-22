@@ -61,7 +61,7 @@ This web-based platform includes three key applications:
   ➤ Upload a clear image of the plant leaf. The system will detect the disease (if any) and provide relevant info and solutions.
 
 ---
-## How to Run project
+## How to Run Project
 
 ### For backend
 
@@ -107,6 +107,11 @@ This web-based platform includes three key applications:
    ```bash
    # Start the Flask server
    flask run
+   ```
+   or
+   ```bash
+   # run the below code inside backend directory
+   python app.py
    ```
    The application will be available at `http://127.0.0.1:5000/`
 
