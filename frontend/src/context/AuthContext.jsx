@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
   // Admin login
   const adminLogin = (email, password) => {
     // Hardcoded admin credentials for demo
-    if (email === 'admin@agrotech.com' && password === 'admin123') {
+    if (email === 'admin@farmalyze.com' && password === 'admin123') {
       const adminUser = { id: 'admin-123', email, name: 'Admin', isAdmin: true };
       setCurrentUser(adminUser);
       setIsAdmin(true);

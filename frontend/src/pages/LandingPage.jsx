@@ -105,7 +105,7 @@ const LandingPage = () => {
             </p>
             <div className="hero-cta">
               <Link to="/signup" className="btn btn-primary hero-btn">Get Started</Link>
-              <Link to="/login" className="btn btn-outline hero-btn-secondary">Login</Link>
+              {/* <Link to="/login" className="btn btn-outline hero-btn-secondary">Login</Link> */}
             </div>
           </div>
         </div>
@@ -198,10 +198,10 @@ const LandingPage = () => {
           <div className="footer-content">
             <div className="footer-logo">
               <Plant className="logo-icon" />
-              <span>AgroTech</span>
+              <span>Farmalyze</span>
             </div>
             <p className="footer-tagline">Empowering farmers with technology</p>
-            <p className="copyright">© 2025 AgroTech. All rights reserved.</p>
+            <p className="copyright">© 2025 Farmalyze. All rights reserved.</p>
           </div>
         </div>
       </footer>

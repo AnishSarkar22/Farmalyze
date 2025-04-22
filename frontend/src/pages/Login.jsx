@@ -45,7 +45,7 @@ const Login = () => {
         <div className="auth-header">
           <Link to="/" className="auth-logo">
             <Plant size={28} />
-            <span>AgroTech</span>
+            <span>Farmalyze</span>
           </Link>
           <h1 className="auth-title">Log In</h1>
           <p className="auth-subtitle">Welcome back! Enter your credentials to continue</p>

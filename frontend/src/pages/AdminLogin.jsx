@@ -24,7 +24,7 @@ const AdminLogin = () => {
       setError('');
       setLoading(true);
       
-      // Admin credentials are hardcoded in the AuthContext (admin@agrotech.com / admin123)
+      // Admin credentials are hardcoded in the AuthContext (admin@farmalyze.com / admin123)
       const success = adminLogin(email, password);
       
       if (success) {
@@ -46,7 +46,7 @@ const AdminLogin = () => {
         <div className="auth-header">
           <Link to="/" className="auth-logo">
             <Plant size={28} />
-            <span>AgroTech</span>
+            <span>Farmalyze</span>
           </Link>
           <div className="admin-login-icon">
             <Lock size={32} />
@@ -90,7 +90,7 @@ const AdminLogin = () => {
           </div>
           
           <div className="admin-credentials-hint">
-            <p>For demo purposes: Email: admin@agrotech.com / Password: admin123</p>
+            <p>For demo purposes: Email: admin@farmalyze.com / Password: admin123</p>
           </div>
           
           <button 

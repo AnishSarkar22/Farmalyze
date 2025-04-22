@@ -57,10 +57,10 @@ const Signup = () => {
         <div className="auth-header">
           <Link to="/" className="auth-logo">
             <Plant size={28} />
-            <span>AgroTech</span>
+            <span>Farmalyze</span>
           </Link>
           <h1 className="auth-title">Create an Account</h1>
-          <p className="auth-subtitle">Join AgroTech to get personalized farming recommendations</p>
+          <p className="auth-subtitle">Join Farmalyze to get personalized farming recommendations</p>
         </div>
         
         {error && (

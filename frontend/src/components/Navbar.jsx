@@ -44,7 +44,7 @@ const Navbar = () => {
       <div className="container navbar-container">
         <Link to="/" className="navbar-logo">
           <Plant className="logo-icon" />
-          <span>AgroTech</span>
+          <span>Farmalyze</span>
         </Link>
 
         {/* Desktop Navigation */}

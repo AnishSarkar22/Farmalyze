@@ -1,3 +1,4 @@
+# old crop disease detection model
 import string
 import bcrypt
 import os
