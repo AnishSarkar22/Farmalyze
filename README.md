@@ -134,3 +134,8 @@ Feel free to fork this repository and contribute by:
 
 ## 📬 Contact
 For queries or suggestions, feel free to open an issue or reach out!
+
+---
+
+## 💳 License
+This software is released under the [MIT](https://github.com/AnishSarkar22/Farmalyze/blob/main/LICENSE) License.
