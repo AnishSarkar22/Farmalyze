@@ -1,0 +1,244 @@
+.form-page {
+    padding: var(--spacing-4) 0;
+  }
+  
+  .form-header {
+    margin-bottom: var(--spacing-4);
+    text-align: center;
+  }
+  
+  .form-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .form-subtitle {
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .form-error {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    background-color: rgba(211, 47, 47, 0.1);
+    color: var(--error);
+    padding: var(--spacing-2);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-3);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .form-content-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .form-card, .result-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-4);
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .form-card:hover, .result-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
+  }
+  
+  .input-help {
+    display: block;
+    margin-top: var(--spacing-1);
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+  
+  .form-actions {
+    margin-top: var(--spacing-4);
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Result Styles */
+  .result-card {
+    max-width: 800px;
+  }
+  
+  .result-header {
+    text-align: center;
+    margin-bottom: var(--spacing-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .result-icon {
+    color: var(--primary);
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .result-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  
+  .result-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+  
+  .recommended-crop, 
+  .alternative-crops, 
+  .soil-health {
+    background-color: var(--background);
+    padding: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+  }
+  
+  .recommended-crop h3,
+  .alternative-crops h3,
+  .soil-health h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-2);
+    color: var(--text-primary);
+  }
+  
+  .crop-recommendation-primary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+  
+  .crop-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .crop-confidence {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+  
+  .confidence-bar {
+    flex: 1;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .confidence-fill {
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: 4px;
+  }
+  
+  .crop-description, 
+  .soil-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  
+  .alternatives-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+  
+  .alternative-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--spacing-2);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .alternative-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .alternative-name {
+    font-weight: 600;
+  }
+  
+  .alternative-confidence {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    min-width: 150px;
+  }
+  
+  .soil-health-rating {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .health-label {
+    font-weight: 500;
+  }
+  
+  .health-value {
+    font-weight: 700;
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-sm);
+  }
+  
+  .health-good {
+    background-color: rgba(46, 125, 50, 0.1);
+    color: var(--success);
+  }
+  
+  .health-moderate {
+    background-color: rgba(237, 108, 2, 0.1);
+    color: var(--warning);
+  }
+  
+  .health-poor {
+    background-color: rgba(211, 47, 47, 0.1);
+    color: var(--error);
+  }
+  
+  .result-actions {
+    margin-top: var(--spacing-4);
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .form-card, .result-card {
+      padding: var(--spacing-3);
+    }
+    
+    .alternative-confidence {
+      min-width: 100px;
+    }
+  }
