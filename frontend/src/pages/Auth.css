@@ -1,0 +1,111 @@
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-3);
+    background-color: var(--background);
+  }
+  
+  .auth-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 450px;
+    padding: var(--spacing-4);
+    transition: transform var(--transition-normal) ease;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .auth-header {
+    text-align: center;
+    margin-bottom: var(--spacing-4);
+  }
+  
+  .auth-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-3);
+  }
+  
+  .auth-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-2);
+    color: var(--text-primary);
+  }
+  
+  .auth-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-3);
+  }
+  
+  .auth-error {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    background-color: rgba(211, 47, 47, 0.1);
+    color: var(--error);
+    padding: var(--spacing-2);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-3);
+    animation: shake 0.4s linear;
+  }
+  
+  .auth-form {
+    margin-bottom: var(--spacing-4);
+  }
+  
+  .auth-submit {
+    width: 100%;
+    margin-top: var(--spacing-3);
+    padding: var(--spacing-2);
+    font-weight: 600;
+  }
+  
+  .auth-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .auth-footer {
+    text-align: center;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    padding-top: var(--spacing-3);
+  }
+  
+  .auth-footer p {
+    margin-bottom: var(--spacing-1);
+  }
+  
+  .auth-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-fast) ease;
+  }
+  
+  .auth-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+  
+  /* Animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  
+  @media (max-width: 480px) {
+    .auth-card {
+      padding: var(--spacing-3);
+    }
+  }

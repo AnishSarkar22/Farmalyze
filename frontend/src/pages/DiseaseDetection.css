@@ -1,0 +1,202 @@
+.image-upload-area {
+    width: 100%;
+    min-height: 300px;
+    border: 2px dashed var(--border);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: var(--spacing-3);
+    position: relative;
+    overflow: hidden;
+    transition: border-color var(--transition-fast) ease;
+  }
+  
+  .image-upload-area:hover {
+    border-color: var(--primary);
+  }
+  
+  .image-upload-area.has-image {
+    border-style: solid;
+    padding: 0;
+  }
+  
+  .upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--spacing-4);
+  }
+  
+  .upload-icon {
+    color: var(--primary);
+    margin-bottom: var(--spacing-2);
+    opacity: 0.8;
+  }
+  
+  .upload-placeholder h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-1);
+    color: var(--text-primary);
+  }
+  
+  .upload-placeholder p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-1);
+  }
+  
+  .file-requirements {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+  
+  .file-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .image-preview-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  
+  .image-preview {
+    width: 100%;
+    height: 300px;
+    object-fit: contain;
+    display: block;
+  }
+  
+  .remove-image-btn {
+    position: absolute;
+    top: var(--spacing-2);
+    right: var(--spacing-2);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color var(--transition-fast) ease;
+  }
+  
+  .remove-image-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .form-instructions {
+    margin-bottom: var(--spacing-3);
+    padding: var(--spacing-3);
+    background-color: rgba(76, 175, 142, 0.1);
+    border-radius: var(--border-radius-md);
+  }
+  
+  .form-instructions h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-2);
+    color: var(--primary);
+  }
+  
+  .instructions-list {
+    list-style-type: disc;
+    padding-left: var(--spacing-3);
+  }
+  
+  .instructions-list li {
+    margin-bottom: var(--spacing-1);
+    color: var(--text-secondary);
+  }
+  
+  /* Result specific styles */
+  .result-image-container {
+    width: 100%;
+    margin-bottom: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .result-image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .disease-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-3);
+  }
+  
+  .disease-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--error);
+  }
+  
+  .disease-description {
+    margin-bottom: var(--spacing-3);
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  
+  .disease-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-3);
+  }
+  
+  .detail-section {
+    background-color: var(--background);
+    padding: var(--spacing-3);
+    border-radius: var(--border-radius-md);
+  }
+  
+  .detail-section h4 {
+    font-weight: 600;
+    margin-bottom: var(--spacing-2);
+    color: var(--text-primary);
+    padding-bottom: var(--spacing-1);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .detail-list {
+    list-style-type: disc;
+    padding-left: var(--spacing-3);
+  }
+  
+  .detail-list li {
+    margin-bottom: var(--spacing-1);
+    color: var(--text-secondary);
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .image-upload-area {
+      min-height: 200px;
+    }
+    
+    .image-preview {
+      height: 200px;
+    }
+    
+    .disease-details {
+      grid-template-columns: 1fr;
+    }
+  }
