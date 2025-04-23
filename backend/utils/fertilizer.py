@@ -33,28 +33,28 @@ fertilizer_dic = {
         'PHigh': """The P value of your soil is high.
         <br/> Please consider the following suggestions:
 
-        <br/><br/>1. <i>Avoid adding manure</i> – manure contains many key nutrients for your soil but typically including high levels of phosphorous. Limiting the addition of manure will help reduce phosphorus being added.
+        <br/><br/>1. <i>Avoid adding manure</i> – manure contains many key nutrients for your soil but typically including high levels of phosphorus. Limiting the addition of manure will help reduce phosphorus being added.
 
-        <br/>2. <i>Use only phosphorus-free fertilizer</i> – if you can limit the amount of phosphorous added to your soil, you can let the plants use the existing phosphorus while still providing other key nutrients such as Nitrogen and Potassium. Find a fertilizer with numbers such as 10-0-10, where the zero represents no phosphorous.
+        <br/>2. <i>Use only phosphorus-free fertilizer</i> – if you can limit the amount of phosphorus added to your soil, you can let the plants use the existing phosphorus while still providing other key nutrients such as Nitrogen and Potassium. Find a fertilizer with numbers such as 10-0-10, where the zero represents no phosphorus.
 
-        <br/>3. <i>Water your soil</i> – soaking your soil liberally will aid in driving phosphorous out of the soil. This is recommended as a last ditch effort.
+        <br/>3. <i>Water your soil</i> – soaking your soil liberally will aid in driving phosphorus out of the soil. This is recommended as a last ditch effort.
 
-        <br/>4. Plant nitrogen fixing vegetables to increase nitrogen without increasing phosphorous (like beans and peas).
+        <br/>4. Plant nitrogen fixing vegetables to increase nitrogen without increasing phosphorus (like beans and peas).
 
-        <br/>5. Use crop rotations to decrease high phosphorous levels""",
+        <br/>5. Use crop rotations to decrease high phosphorus levels""",
 
         'Plow': """The P value of your soil is low.
         <br/> Please consider the following suggestions:
 
-        <br/><br/>1. <i>Bone meal</i> – a fast acting source that is made from ground animal bones which is rich in phosphorous.
+        <br/><br/>1. <i>Bone meal</i> – a fast acting source that is made from ground animal bones which is rich in phosphorus.
 
-        <br/>2. <i>Rock phosphate</i> – a slower acting source where the soil needs to convert the rock phosphate into phosphorous that the plants can use.
+        <br/>2. <i>Rock phosphate</i> – a slower acting source where the soil needs to convert the rock phosphate into phosphorus that the plants can use.
 
-        <br/>3. <i>Phosphorus Fertilizers</i> – applying a fertilizer with a high phosphorous content in the NPK ratio (example: 10-20-10, 20 being phosphorous percentage).
+        <br/>3. <i>Phosphorus Fertilizers</i> – applying a fertilizer with a high phosphorus content in the NPK ratio (example: 10-20-10, 20 being phosphorus percentage).
 
-        <br/>4. <i>Organic compost</i> – adding quality organic compost to your soil will help increase phosphorous content.
+        <br/>4. <i>Organic compost</i> – adding quality organic compost to your soil will help increase phosphorus content.
 
-        <br/>5. <i>Manure</i> – as with compost, manure can be an excellent source of phosphorous for your plants.
+        <br/>5. <i>Manure</i> – as with compost, manure can be an excellent source of phosphorus for your plants.
 
         <br/>6. <i>Clay soil</i> – introducing clay particles into your soil can help retain & fix phosphorus deficiencies.
 
@@ -71,7 +71,7 @@ fertilizer_dic = {
 
         <br/>2. <i>Sift through the soil</i>, and remove as many rocks as possible, using a soil sifter. Minerals occurring in rocks such as mica and feldspar slowly release potassium into the soil slowly through weathering.
 
-        <br/>3. Stop applying potassium-rich commercial fertilizer. Apply only commercial fertilizer that has a '0' in the final number field. Commercial fertilizers use a three number system for measuring levels of nitrogen, phosphorous and potassium. The last number stands for potassium. Another option is to stop using commercial fertilizers all together and to begin using only organic matter to enrich the soil.
+        <br/>3. Stop applying potassium-rich commercial fertilizer. Apply only commercial fertilizer that has a '0' in the final number field. Commercial fertilizers use a three number system for measuring levels of nitrogen, phosphorus and potassium. The last number stands for potassium. Another option is to stop using commercial fertilizers all together and to begin using only organic matter to enrich the soil.
 
         <br/>4. Mix crushed eggshells, crushed seashells, wood ash or soft rock phosphate to the soil to add calcium. Mix in up to 10 percent of organic compost to help amend and balance the soil.
 

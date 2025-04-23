@@ -61,7 +61,7 @@ This web-based platform includes three key applications:
   ➤ Upload a clear image of the plant leaf. The system will detect the disease (if any) and provide relevant info and solutions.
 
 ---
-## How to Run Project
+## ❓ How to Run Project
 
 ### For backend
 

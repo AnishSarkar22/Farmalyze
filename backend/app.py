@@ -294,7 +294,7 @@ def crop_prediction():
 
     if request.method == 'POST':
         N = int(request.form['nitrogen'])
-        P = int(request.form['phosphorous'])
+        P = int(request.form['phosphorus'])
         K = int(request.form['pottasium'])
         ph = float(request.form['ph'])
         rainfall = float(request.form['rainfall'])
@@ -321,7 +321,7 @@ def fert_recommend():
 
     crop_name = str(request.form['cropname'])
     N = int(request.form['nitrogen'])
-    P = int(request.form['phosphorous'])
+    P = int(request.form['phosphorus'])
     K = int(request.form['pottasium'])
     # ph = float(request.form['ph'])
 

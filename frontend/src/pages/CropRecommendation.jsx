@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, Plane as Plant, Check } from 'lucide-react';
 import './Form.css';
+import { state_arr, s_a } from '../components/cities.js';
 
 const CropRecommendation = () => {
   const [formData, setFormData] = useState({
     nitrogen: '',
     phosphorus: '',
     potassium: '',
-    phLevel: '',
+    ph: '',
     rainfall: '',
     state: '',
     city: ''
@@ -16,73 +17,109 @@ const CropRecommendation = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  
+
+  useEffect(() => {
+    // Create state dropdown when component mounts
+    const stateSelect = document.getElementById('state');
+    if (stateSelect) {
+      stateSelect.length = 0;
+      stateSelect.options[0] = new Option('Select State', '');
+      stateSelect.selectedIndex = 0;
+      for (let i = 0; i < state_arr.length; i++) {
+        stateSelect.options[stateSelect.length] = new Option(state_arr[i], state_arr[i]);
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validate form inputs
-    if (
-      !formData.nitrogen || 
-      !formData.phosphorus || 
-      !formData.potassium || 
-      !formData.phLevel || 
-      !formData.rainfall || 
-      !formData.state || 
-      !formData.city
-    ) {
-      setError('Please fill in all fields');
-      return;
+    // If state is changed, update cities
+    if (name === 'state') {
+      const citySelect = document.getElementById('city');
+      const stateIndex = state_arr.indexOf(value) + 1; // +1 because s_a array is 1-based
+      
+      if (citySelect) {
+        citySelect.length = 0;
+        citySelect.options[0] = new Option('Select City', '');
+        citySelect.selectedIndex = 0;
+  
+        if (value) {
+          // Get cities from s_a array and split by |
+          const cityArr = s_a[stateIndex].split('|');
+          cityArr.forEach(city => {
+            citySelect.options[citySelect.length] = new Option(city.trim(), city.trim());
+          });
+        }
+      }
     }
-    
-    setLoading(true);
-    setError('');
-    
-    // Simulate API call for crop recommendation
-    setTimeout(() => {
-      // For demo purposes, we'll return mock results
-      // In a real app, this would call an ML model API
-      const mockCrops = [
-        { name: 'Rice', confidence: 92, description: 'Ideal for your soil conditions with high rainfall.' },
-        { name: 'Wheat', confidence: 87, description: 'Well-suited for your nutrient profile but requires moderate rainfall.' },
-        { name: 'Maize', confidence: 78, description: 'Can grow well in your soil conditions with proper irrigation.' },
-      ];
-      
+  };
+
+  // First modify the handleSubmit function:
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Validate form inputs
+  if (
+    !formData.nitrogen || 
+    !formData.phosphorus || 
+    !formData.potassium || 
+    !formData.ph || 
+    !formData.rainfall || 
+    !formData.state || 
+    !formData.city
+  ) {
+    setError('Please fill in all fields');
+    return;
+  }
+  
+  setLoading(true);
+  setError('');
+  
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/crop-predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nitrogen: formData.nitrogen,
+        phosphorus: formData.phosphorus,
+        potassium: formData.potassium,
+        ph: formData.ph,
+        rainfall: formData.rainfall,
+        city: formData.city
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
       setResult({
-        recommendedCrop: mockCrops[0],
-        alternatives: mockCrops.slice(1),
+        recommendedCrop: {
+          name: data.prediction,
+          confidence: 95,
+          description: `Based on your soil parameters and weather conditions in ${formData.city}, ${data.prediction} is recommended as the best crop for your farm.`
+        },
+        alternatives: [
+          { name: 'Rice', confidence: 85 },
+          { name: 'Wheat', confidence: 82 }
+        ],
         soilHealth: 'Good',
-        soilHealthDescription: 'Your soil has good nutrient balance. Consider adding organic matter to improve structure.'
+        soilHealthDescription: 'Your soil parameters indicate good growing conditions. Consider regular soil testing to maintain optimal nutrient levels.'
       });
-      
-      setLoading(false);
-    }, 2000);
-  };
+    } else {
+      setError(data.error || 'Failed to get prediction');
+    }
+  } catch (err) {
+    setError('Failed to connect to the server');
+    console.error('Error:', err);
+  } finally {
+    setLoading(false);
+  }
   
-  const states = [
-    'Andhra Pradesh', 'Karnataka', 'Tamil Nadu', 'Maharashtra', 
-    'Punjab', 'Uttar Pradesh', 'West Bengal', 'Gujarat'
-  ];
-  
-  // Sample cities based on selected state
-  const getCitiesByState = (state) => {
-    const citiesByState = {
-      'Andhra Pradesh': ['Hyderabad', 'Vijayawada', 'Visakhapatnam'],
-      'Karnataka': ['Bangalore', 'Mysore', 'Mangalore'],
-      'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai'],
-      'Maharashtra': ['Mumbai', 'Pune', 'Nagpur'],
-      'Punjab': ['Chandigarh', 'Ludhiana', 'Amritsar'],
-      'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Varanasi'],
-      'West Bengal': ['Kolkata', 'Siliguri', 'Asansol'],
-      'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara']
-    };
-    
-    return citiesByState[state] || [];
-  };
+};
 
   return (
     <div className="form-page">
@@ -160,10 +197,10 @@ const CropRecommendation = () => {
                   <label htmlFor="phLevel" className="form-label">pH Level</label>
                   <input
                     type="number"
-                    id="phLevel"
-                    name="phLevel"
+                    id="ph"
+                    name="ph"
                     className="form-input"
-                    value={formData.phLevel}
+                    value={formData.ph}
                     onChange={handleChange}
                     placeholder="e.g., 6.5"
                     min="0"
@@ -199,9 +236,9 @@ const CropRecommendation = () => {
                     onChange={handleChange}
                   >
                     <option value="">Select State</option>
-                    {states.map(state => (
+                    {/* {states.map(state => (
                       <option key={state} value={state}>{state}</option>
-                    ))}
+                    ))} */}
                   </select>
                 </div>
                 
@@ -216,9 +253,9 @@ const CropRecommendation = () => {
                     disabled={!formData.state}
                   >
                     <option value="">Select City</option>
-                    {formData.state && getCitiesByState(formData.state).map(city => (
+                    {/* {formData.state && getCitiesByState(formData.state).map(city => (
                       <option key={city} value={city}>{city}</option>
-                    ))}
+                    ))} */}
                   </select>
                 </div>
               </div>

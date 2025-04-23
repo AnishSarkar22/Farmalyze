@@ -2,7 +2,8 @@
 import string
 import os
 import bcrypt
-from flask import Flask, redirect, render_template, url_for, request, Markup
+from flask import Flask, jsonify, redirect, render_template, url_for, request, Markup
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from wtforms import StringField, PasswordField, SubmitField
@@ -132,14 +133,22 @@ def predict_image(img, model=disease_model):
     
     return prediction
 
-app = Flask(__name__, 
-           template_folder='../frontend-old/templates',
-           static_folder='../frontend-old/static')
+app = Flask(__name__)
+# CORS(app, supports_credentials=True)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "database.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = '3e9u8wyfgbhjvsiuy78tqwdegufcbhsj'
+app.config['JSON_SORT_KEYS'] = False
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -193,24 +202,36 @@ class ContactUs(db.Model):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return jsonify({
+        'status': 'success',
+        'message': 'Farmalyze API is running',
+        'version': '1.0.0'
+    })
+    
+@app.route("/api/health")
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'uptime': 'active'
+    })
     
 
-@app.route("/aboutus")
-def aboutus():
-    return render_template("aboutus.html")
+# @app.route("/aboutus")
+# def aboutus():
+#     return render_template("aboutus.html")
 
-@app.route("/contact", methods=['GET', 'POST'])
-def contact():
-    if request.method=='POST':
-        name = request.form['name']
-        email = request.form['email']
-        text = request.form['text']
-        contacts = ContactUs(name=name, email=email, text=text)
-        db.session.add(contacts)
-        db.session.commit()
+# @app.route("/contact", methods=['GET', 'POST'])
+# def contact():
+#     if request.method=='POST':
+#         name = request.form['name']
+#         email = request.form['email']
+#         text = request.form['text']
+#         contacts = ContactUs(name=name, email=email, text=text)
+#         db.session.add(contacts)
+#         db.session.commit()
     
-    return render_template("contact.html")
+#     return render_template("contact.html")
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -227,11 +248,11 @@ def login():
 
     return render_template("login.html", form=form)
 
-@ app.route('/dashboard',methods=['GET', 'POST'])
-@login_required
-def dashboard():
-    title = 'dashboard'
-    return render_template('dashboard.html',title=title)
+# @ app.route('/dashboard',methods=['GET', 'POST'])
+# @login_required
+# def dashboard():
+#     title = 'dashboard'
+#     return render_template('dashboard.html',title=title)
 
 @ app.route('/logout',methods=['GET', 'POST'])
 @login_required
@@ -254,140 +275,133 @@ def signup():
 
     return render_template("signup.html", form=form)
 
-@ app.route('/crop-recommend')
-@login_required
-def crop_recommend():
-    title = 'crop-recommend - Crop Recommendation'
-    return render_template('crop.html', title=title)
+# @ app.route('/crop-recommend')
+# @login_required
+# def crop_recommend():
+#     title = 'crop-recommend - Crop Recommendation'
+#     return render_template('crop.html', title=title)
 
-@ app.route('/fertilizer')
-@login_required
-def fertilizer_recommendation():
-    title = '- Fertilizer Suggestion'
-    return render_template('fertilizer.html', title=title)
+# @ app.route('/fertilizer')
+# @login_required
+# def fertilizer_recommendation():
+#     title = '- Fertilizer Suggestion'
+#     return render_template('fertilizer.html', title=title)
 
-@app.route('/disease-predict', methods=['GET', 'POST'])
-@login_required
-def disease_prediction():
-    title = '- Disease Detection'
-
-    if request.method == 'POST':
+@app.route('/api/disease-predict', methods=['POST'])
+def api_disease_prediction():
+    try:
         if 'file' not in request.files:
-            return redirect(request.url)
-        file = request.files.get('file')
+            return jsonify({
+                'success': False,
+                'error': 'No file provided'
+            }), 400
+
+        file = request.files['file']
         if not file:
-            return render_template('disease.html', title=title)
-        try:
-            img = file.read()
-            prediction = predict_image(img)
-            
-            # Clean up prediction string to match disease dictionary keys
-            cleaned_prediction = prediction.replace("_", " ").title()
-            
-            # Get detailed information about the disease
-            if prediction in disease_dic:
-                disease_info = disease_dic[prediction]
-                # Don't show the raw prediction when we have detailed info
-                show_prediction = False
-            else:
-                disease_info = ""  # Don't show duplicate text
-                show_prediction = True
-                
-            disease_info = Markup(str(disease_info))
-            
-            return render_template('disease-result.html', 
-                                prediction=disease_info,
-                                title=title,
-                                original_prediction=cleaned_prediction if show_prediction else None)
-                                
-        except Exception as e:
-            print(f"Error in disease prediction: {e}")
-            return render_template('disease.html', 
-                                title=title, 
-                                error="Could not process image. Please try again.")
-    
-    return render_template('disease.html', title=title)
+            return jsonify({
+                'success': False,
+                'error': 'Invalid file'
+            }), 400
+
+        img = file.read()
+        prediction = predict_image(img)
+        cleaned_prediction = prediction.replace("_", " ").title()
+        
+        disease_info = disease_dic.get(prediction, "")
+        
+        return jsonify({
+            'success': True,
+            'prediction': cleaned_prediction,
+            'disease_info': disease_info
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
 # ===============================================================================================
 
 # RENDER PREDICTION PAGES
 
 # render crop recommendation result page
+@app.route('/api/crop-predict', methods=['POST'])
+def api_crop_prediction():
+    try:
+        data = request.get_json()
+        N = int(data['nitrogen'])
+        P = int(data['phosphorus'])
+        K = int(data['potassium'])
+        ph = float(data['ph'])
+        rainfall = float(data['rainfall'])
+        city = data['city']
 
-
-@ app.route('/crop-predict', methods=['POST'])
-def crop_prediction():
-    title = '- Crop Recommendation'
-
-    if request.method == 'POST':
-        N = int(request.form['nitrogen'])
-        P = int(request.form['phosphorous'])
-        K = int(request.form['pottasium'])
-        ph = float(request.form['ph'])
-        rainfall = float(request.form['rainfall'])
-
-        # state = request.form.get("stt")
-        city = request.form.get("city")
-
-        if weather_fetch(city) != None:
+        if weather_fetch(city) is not None:
             temperature, humidity = weather_fetch(city)
-            data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
-            my_prediction = crop_recommendation_model.predict(data)
-            final_prediction = my_prediction[0]
-
-            return render_template('crop-result.html', prediction=final_prediction, title=title)
-
+            input_data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
+            prediction = crop_recommendation_model.predict(input_data)[0]
+            
+            return jsonify({
+                'success': True,
+                'prediction': prediction
+            }), 200
         else:
+            return jsonify({
+                'success': False,
+                'error': 'Could not fetch weather data'
+            }), 400
 
-            return render_template('try_again.html', title=title)
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
 # render fertilizer recommendation result page
-@ app.route('/fertilizer-predict', methods=['POST'])
-def fert_recommend():
-    title = '- Fertilizer Suggestion'
+@app.route('/api/fertilizer-predict', methods=['POST'])
+def api_fertilizer_prediction():
+    try:
+        data = request.get_json()
+        crop_name = str(data['cropname'])
+        N = int(data['nitrogen'])
+        P = int(data['phosphorus'])
+        K = int(data['potassium'])
 
-    crop_name = str(request.form['cropname'])
-    N = int(request.form['nitrogen'])
-    P = int(request.form['phosphorous'])
-    K = int(request.form['pottasium'])
-    # ph = float(request.form['ph'])
+        df = pd.read_csv('Data/fertilizer.csv')
 
-    df = pd.read_csv('Data/fertilizer.csv')
+        nr = df[df['Crop'] == crop_name]['N'].iloc[0]
+        pr = df[df['Crop'] == crop_name]['P'].iloc[0]
+        kr = df[df['Crop'] == crop_name]['K'].iloc[0]
 
-    nr = df[df['Crop'] == crop_name]['N'].iloc[0]
-    pr = df[df['Crop'] == crop_name]['P'].iloc[0]
-    kr = df[df['Crop'] == crop_name]['K'].iloc[0]
+        n = nr - N
+        p = pr - P
+        k = kr - K
+        temp = {abs(n): "N", abs(p): "P", abs(k): "K"}
+        max_value = temp[max(temp.keys())]
 
-    n = nr - N
-    p = pr - P
-    k = kr - K
-    temp = {abs(n): "N", abs(p): "P", abs(k): "K"}
-    max_value = temp[max(temp.keys())]
-    if max_value == "N":
-        if n < 0:
-            key = 'NHigh'
+        if max_value == "N":
+            key = 'NHigh' if n < 0 else "Nlow"
+        elif max_value == "P":
+            key = 'PHigh' if p < 0 else "Plow"
         else:
-            key = "Nlow"
-    elif max_value == "P":
-        if p < 0:
-            key = 'PHigh'
-        else:
-            key = "Plow"
-    else:
-        if k < 0:
-            key = 'KHigh'
-        else:
-            key = "Klow"
+            key = 'KHigh' if k < 0 else "Klow"
 
-    response = Markup(str(fertilizer_dic[key]))
+        return jsonify({
+            'success': True,
+            'recommendation': fertilizer_dic[key]
+        }), 200
 
-    return render_template('fertilizer-result.html', recommendation=response, title=title)
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
-
-@app.route("/display")
-def querydisplay():
-    alltodo = ContactUs.query.all()
-    return render_template("display.html",alltodo=alltodo)
+# @app.route("/display")
+# def querydisplay():
+#     alltodo = ContactUs.query.all()
+#     return render_template("display.html",alltodo=alltodo)
 
 @app.route("/AdminLogin", methods=['GET', 'POST'])
 def AdminLogin():
@@ -406,12 +420,12 @@ def AdminLogin():
     return render_template("adminlogin.html", form=form)
 
 
-@app.route("/admindashboard")
-@login_required
-def admindashboard():
-    alltodo = ContactUs.query.all()
-    alluser = User.query.all()
-    return render_template("admindashboard.html",alltodo=alltodo, alluser=alluser)
+# @app.route("/admindashboard")
+# @login_required
+# def admindashboard():
+#     alltodo = ContactUs.query.all()
+#     alluser = User.query.all()
+#     return render_template("admindashboard.html",alltodo=alltodo, alluser=alluser)
 
 @app.route("/reg",methods=['GET', 'POST'])
 def reg():
@@ -428,4 +442,4 @@ def reg():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    app.run(debug=True, host='127.0.0.1', port=8000)
