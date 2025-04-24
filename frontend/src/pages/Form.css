@@ -1,4 +1,4 @@
-.form-page {
+  .form-page {
     padding: var(--spacing-4) 0;
   }
   
@@ -241,4 +241,31 @@
     .alternative-confidence {
       min-width: 100px;
     }
+  }
+
+  .recommendation-content {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    line-height: 1.6;
+  }
+  
+  .highlight-text {
+    color: #2C3E50;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 1rem;
+  }
+  
+  .emphasis-text {
+    color: #4CAF50;
+    font-style: italic;
+  }
+  
+  .recommendation-content br {
+    margin-bottom: 0.5rem;
+  }
+  
+  .recommendation-content br + br {
+    margin-bottom: 1rem;
   }

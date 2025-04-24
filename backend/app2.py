@@ -199,6 +199,7 @@ class ContactUs(db.Model):
     def __repr__(self) -> str:
         return f"{self.sno} - {self.title}"
 
+# ===============================================================================================
 
 @app.route("/")
 def home():
@@ -215,7 +216,6 @@ def health_check():
         'timestamp': datetime.now().isoformat(),
         'uptime': 'active'
     })
-    
 
 # @app.route("/aboutus")
 # def aboutus():
@@ -248,12 +248,6 @@ def login():
 
     return render_template("login.html", form=form)
 
-# @ app.route('/dashboard',methods=['GET', 'POST'])
-# @login_required
-# def dashboard():
-#     title = 'dashboard'
-#     return render_template('dashboard.html',title=title)
-
 @ app.route('/logout',methods=['GET', 'POST'])
 @login_required
 def logout():
@@ -275,19 +269,8 @@ def signup():
 
     return render_template("signup.html", form=form)
 
-# @ app.route('/crop-recommend')
-# @login_required
-# def crop_recommend():
-#     title = 'crop-recommend - Crop Recommendation'
-#     return render_template('crop.html', title=title)
-
-# @ app.route('/fertilizer')
-# @login_required
-# def fertilizer_recommendation():
-#     title = '- Fertilizer Suggestion'
-#     return render_template('fertilizer.html', title=title)
-
 @app.route('/api/disease-predict', methods=['POST'])
+# @login_required
 def api_disease_prediction():
     try:
         if 'file' not in request.files:
@@ -327,6 +310,7 @@ def api_disease_prediction():
 
 # render crop recommendation result page
 @app.route('/api/crop-predict', methods=['POST'])
+# @login_required
 def api_crop_prediction():
     try:
         data = request.get_json()
@@ -360,6 +344,7 @@ def api_crop_prediction():
 
 # render fertilizer recommendation result page
 @app.route('/api/fertilizer-predict', methods=['POST'])
+# @login_required
 def api_fertilizer_prediction():
     try:
         data = request.get_json()
@@ -397,11 +382,6 @@ def api_fertilizer_prediction():
             'success': False,
             'error': str(e)
         }), 400
-
-# @app.route("/display")
-# def querydisplay():
-#     alltodo = ContactUs.query.all()
-#     return render_template("display.html",alltodo=alltodo)
 
 @app.route("/AdminLogin", methods=['GET', 'POST'])
 def AdminLogin():
