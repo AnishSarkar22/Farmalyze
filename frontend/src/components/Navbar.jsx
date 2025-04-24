@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, Home, Plane as Plant, Droplets, Microscope, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, Home, Plane, Tractor, Droplets, Microscope, LayoutDashboard } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -59,7 +59,7 @@ const Navbar = () => {
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container navbar-container">
         <Link to="/" className="navbar-logo">
-          <Plant className="logo-icon" />
+          <Plane className="logo-icon" />
           <span>Farmalyze</span>
         </Link>
 
@@ -79,7 +79,7 @@ const Navbar = () => {
                     <span>Dashboard</span>
                   </Link>
                   <Link to="/crop" className={`nav-link ${location.pathname === '/crop' ? 'active' : ''}`}>
-                    <Plant size={18} />
+                    <Tractor size={18} />
                     <span>Crop</span>
                   </Link>
                   <Link to="/fertilizer" className={`nav-link ${location.pathname === '/fertilizer' ? 'active' : ''}`}>
@@ -129,7 +129,7 @@ const Navbar = () => {
                   <span>Dashboard</span>
                 </Link>
                 <Link to="/crop" className="mobile-nav-link" onClick={closeMenu}>
-                  <Plant size={20} />
+                  <Tractor size={20} />
                   <span>Crop</span>
                 </Link>
                 <Link to="/fertilizer" className="mobile-nav-link" onClick={closeMenu}>

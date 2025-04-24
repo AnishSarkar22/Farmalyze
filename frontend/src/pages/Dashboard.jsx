@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 // import { useAuth } from '../context/AuthContext';
-import { Plane as Plant, Droplets, Microscope, AlertCircle } from 'lucide-react';
+import { Tractor, Droplets, Microscope, AlertCircle } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -51,7 +51,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <div className="container">
         <div className="dashboard-header">
-          <h1 className="dashboard-title">Welcome, {userName}  👋</h1>
+          <h1 className="dashboard-title">Welcome, {userName} 👋</h1>
           <p className="dashboard-subtitle">Your agricultural assistant dashboard</p>
         </div>
 
@@ -61,7 +61,7 @@ const Dashboard = () => {
             <div className="quick-actions-grid">
               <Link to="/crop" className="quick-action-item">
                 <div className="quick-action-icon">
-                  <Plant size={24} />
+                  <Tractor size={24} />
                 </div>
                 <span>Crop Recommendation</span>
               </Link>
@@ -129,7 +129,7 @@ const Dashboard = () => {
                 {recentActivities.map(activity => (
                   <div key={activity.id} className="activity-item">
                     <div className="activity-icon">
-                      {activity.type === 'crop' && <Plant size={18} />}
+                      {activity.type === 'crop' && <Tractor size={18} />}
                       {activity.type === 'fertilizer' && <Droplets size={18} />}
                       {activity.type === 'disease' && <Microscope size={18} />}
                     </div>

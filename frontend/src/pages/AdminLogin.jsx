@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plane as Plant, AlertCircle, Lock } from 'lucide-react';
+import { Tractor, AlertCircle, Lock } from 'lucide-react';
 import './Auth.css';
 
 const AdminLogin = () => {
@@ -45,7 +45,7 @@ const AdminLogin = () => {
       <div className="auth-card">
         <div className="auth-header">
           <Link to="/" className="auth-logo">
-            <Plant size={28} />
+            <Tractor size={28} />
             <span>Farmalyze</span>
           </Link>
           <div className="admin-login-icon">

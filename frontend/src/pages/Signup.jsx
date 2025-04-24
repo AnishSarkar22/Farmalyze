@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // import { useAuth } from '../context/AuthContext';
-import { Plane as Plant, AlertCircle } from 'lucide-react';
+import { Plane, AlertCircle } from 'lucide-react';
 import './Auth.css';
 
 const Signup = () => {
@@ -69,7 +69,7 @@ const Signup = () => {
       <div className="auth-card">
         <div className="auth-header">
           <Link to="/" className="auth-logo">
-            <Plant size={28} />
+            <Plane size={28} />
             <span>Farmalyze</span>
           </Link>
           <h1 className="auth-title">Create an Account</h1>

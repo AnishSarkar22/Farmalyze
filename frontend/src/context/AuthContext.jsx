@@ -13,13 +13,46 @@ export function AuthProvider({ children }) {
 
   // Check if user is logged in on page load
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
-    if (user) {
-      const userData = JSON.parse(user);
-      setCurrentUser(userData);
-      setIsAdmin(userData.isAdmin || false);
-    }
-    setLoading(false);
+    const checkAuthState = async () => {
+      try {
+        // Check local storage first
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+        
+        if (token && userData) {
+          const user = JSON.parse(userData);
+          setCurrentUser(user);
+          setIsAdmin(user.isAdmin || false);
+        } else {
+          // Try to get current user from backend
+          const response = await fetch('http://127.0.0.1:8000/api/current-user', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              setCurrentUser(data.user);
+              setIsAdmin(data.user.isAdmin || false);
+              // Update local storage
+              localStorage.setItem('token', data.user.access_token);
+              localStorage.setItem('user', JSON.stringify(data.user));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Auth state check failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthState();
   }, []);
 
   // Regular user login

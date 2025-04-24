@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as THREE from 'three';
-import { Plane as Plant, Droplets, Microscope, TrendingUp } from 'lucide-react';
+import { Plane, Tractor, Droplets, Microscope, TrendingUp } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import './LandingPage.css';
 
@@ -117,7 +117,7 @@ const LandingPage = () => {
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">
-                <Plant size={32} />
+                <Tractor size={32} />
               </div>
               <h3 className="feature-title">Crop Recommendation</h3>
               <p className="feature-desc">
@@ -197,7 +197,7 @@ const LandingPage = () => {
         <div className="container">
           <div className="footer-content">
             <div className="footer-logo">
-              <Plant className="logo-icon" />
+              <Plane className="logo-icon" />
               <span>Farmalyze</span>
             </div>
             <p className="footer-tagline">Empowering farmers with technology</p>

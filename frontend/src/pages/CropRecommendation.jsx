@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, Plane as Plant, Check } from 'lucide-react';
+import { AlertCircle, Tractor, Check } from 'lucide-react';
 import './Form.css';
 import { state_arr, s_a } from '../components/cities.js';
 
@@ -273,7 +273,7 @@ const handleSubmit = async (e) => {
           ) : (
             <div className="result-card">
               <div className="result-header">
-                <Plant size={32} className="result-icon" />
+                <Tractor size={32} className="result-icon" />
                 <h2 className="result-title">Crop Recommendation Results</h2>
               </div>
               
