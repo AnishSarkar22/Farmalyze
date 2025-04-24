@@ -167,11 +167,17 @@
   }
   
   .alternative-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: var(--spacing-2);
-    border-bottom: 1px solid var(--border);
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .alternative-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
   
   .alternative-item:last-child {
@@ -180,7 +186,9 @@
   }
   
   .alternative-name {
+    font-size: 1.25rem;
     font-weight: 600;
+    color: #1a1a1a;
   }
   
   .alternative-confidence {
@@ -189,6 +197,39 @@
     gap: var(--spacing-1);
     min-width: 150px;
   }
+
+  .confidence-tag {
+    background: #f0f7f0;
+    color: #2E7D32;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .confidence-progress {
+    margin: 0.75rem 0;
+  }
+  
+  .confidence-bar {
+    height: 8px;
+    width: 100%;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  
+  .alternative-reason {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0.5rem 0 0;
+  }
+  
+  .alternatives-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }  
   
   .soil-health-rating {
     display: flex;
@@ -240,6 +281,9 @@
     
     .alternative-confidence {
       min-width: 100px;
+    }
+    .alternatives-list {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 

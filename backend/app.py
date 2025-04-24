@@ -11,6 +11,7 @@ from wtforms.validators import InputRequired, Length, ValidationError
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+from gemini import get_alternative_crops
 import requests
 import numpy as np
 import pandas as pd
@@ -455,9 +456,31 @@ def api_crop_prediction():
             input_data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
             prediction = crop_recommendation_model.predict(input_data)[0]
             
+            # Get soil conditions summary
+            soil_conditions = {
+                "nitrogen": N,
+                "phosphorus": P,
+                "potassium": K,
+                "ph": ph,
+                "rainfall": rainfall,
+                "temperature": temperature,
+                "humidity": humidity
+            }
+            
+            # Get alternative crops
+            alternatives = get_alternative_crops(prediction, soil_conditions, city)
+            
+            
             return jsonify({
                 'success': True,
-                'prediction': prediction
+                'prediction': prediction,
+                'alternatives': alternatives,
+                'conditions': {
+                    'temperature': temperature,
+                    'humidity': humidity,
+                    'soil_health': 'Good' if (6.0 <= ph <= 7.5) else 'Fair',
+                    'location': city
+                }
             }), 200
         else:
             return jsonify({
