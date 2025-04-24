@@ -20,11 +20,22 @@ import io
 import torch
 from torchvision import transforms
 
+from supabase import create_client, Client
+from postgrest.exceptions import APIError
+
 from utils.model import ResNet9
 from utils.fertilizer import fertilizer_dic
 from utils.disease import disease_dic
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 from PIL import Image
+
+from dotenv import load_dotenv
+load_dotenv()
+
+supabase: Client = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_KEY")
+)
 
 # -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
 
@@ -149,6 +160,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = '3e9u8wyfgbhjvsiuy78tqwdegufcbhsj'
 app.config['JSON_SORT_KEYS'] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['CORS_SUPPORTS_CREDENTIALS'] = True
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -233,41 +245,154 @@ def health_check():
     
 #     return render_template("contact.html")
 
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if current_user.is_authenticated:
-         return redirect(url_for('dashboard'))
 
-    elif form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password,form.password.data):
-                login_user(user)
-                return redirect(url_for('dashboard'))
+# test supabase connection
+@app.route("/api/test-connection")
+def test_connection():
+    try:        
+        return jsonify({
+            'status': 'success',
+            'message': 'Successfully connected to Supabase',
+            'timestamp': datetime.now().isoformat(),
+            'connection': 'online'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to connect to Supabase',
+            'error': str(e),
+            'connection': 'offline'
+        }), 500
 
-    return render_template("login.html", form=form)
-
-@ app.route('/logout',methods=['GET', 'POST'])
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-
-@app.route("/signup",methods=['GET', 'POST'])
+# Route for Signup endpoint
+@app.route("/api/signup", methods=['POST'])
 def signup():
-    form = RegisterForm()
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
 
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        if not all([name, email, password]):
+            return jsonify({
+                'success': False,
+                'error': 'Missing required fields'
+            }), 400
 
+        auth_response = supabase.auth.sign_up({
+            "email": email,
+            "password": password,
+            "options": {
+                "data": {
+                    "full_name": name
+                }
+            }
+        })
 
-    return render_template("signup.html", form=form)
+        if auth_response.user:
+            return jsonify({
+                'success': True,
+                'message': 'User created successfully',
+                'user': {
+                    'id': auth_response.user.id,
+                    'email': email,
+                    'name': name
+                }
+            }), 201
+
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create user'
+        }), 400
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+# Route for Signin endpoint
+@app.route("/api/login", methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not all([email, password]):
+            return jsonify({
+                'success': False,
+                'error': 'Missing required fields'
+            }), 400
+
+        # Sign in with Supabase Auth
+        auth_response = supabase.auth.sign_in_with_password({
+            "email": email,
+            "password": password
+        })
+
+        if auth_response.user:
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'user': {
+                    'id': auth_response.user.id,
+                    'email': auth_response.user.email,
+                    'access_token': auth_response.session.access_token
+                }
+            }), 200
+
+        return jsonify({
+            'success': False,
+            'error': 'Invalid credentials'
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+#Route for logout endpoint
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    try:
+        response = supabase.auth.sign_out()
+        return jsonify({"message": "Logged out successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/current-user', methods=['GET', 'OPTIONS'])
+def get_current_user():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+
+    try:
+        user = supabase.auth.get_user()
+        if user and user.user:
+            response = jsonify({
+                'success': True,
+                'user': {
+                    'id': user.user.id,
+                    'email': user.user.email,
+                    'name': user.user.user_metadata.get('full_name', 'User')
+                }
+            })
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            return response, 200
+            
+        return jsonify({
+            'success': False,
+            'error': 'No user found'
+        }), 401
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/disease-predict', methods=['POST'])
 # @login_required

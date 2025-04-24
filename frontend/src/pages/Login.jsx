@@ -9,8 +9,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,12 +24,29 @@ const Login = () => {
       setError('');
       setLoading(true);
       
-      const success = login(email, password);
-      
-      if (success) {
-        navigate('/dashboard');
+      const response = await fetch('http://127.0.0.1:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update auth context with user data
+        const success = await login(data.user);
+        if (success) {
+          navigate('/dashboard');
+        } else {
+          setError('Failed to set user session');
+        }
       } else {
-        setError('Failed to log in. Please check your credentials.');
+        setError(data.error || 'Invalid credentials');
       }
     } catch (err) {
       setError('Failed to log in. Please try again.');
@@ -48,7 +65,7 @@ const Login = () => {
             <span>Farmalyze</span>
           </Link>
           <h1 className="auth-title">Log In</h1>
-          <p className="auth-subtitle">Welcome back! Enter your credentials to continue</p>
+          <p className="auth-subtitle">Welcome back!</p>
         </div>
         
         {error && (

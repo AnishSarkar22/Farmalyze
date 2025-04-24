@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
 import { Plane as Plant, AlertCircle } from 'lucide-react';
 import './Auth.css';
 
@@ -11,9 +11,10 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  // const { signup } = useAuth();
   const navigate = useNavigate();
 
+  // Update the handleSubmit function:
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -36,12 +37,24 @@ const Signup = () => {
       setError('');
       setLoading(true);
       
-      const success = signup(name, email, password);
-      
-      if (success) {
-        navigate('/dashboard');
+      const response = await fetch('http://localhost:8000/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        navigate('/login');
       } else {
-        setError('Failed to create an account. Please try again.');
+        setError(data.error || 'Failed to create account');
       }
     } catch (err) {
       setError('Failed to create an account. Please try again.');

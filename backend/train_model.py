@@ -4,8 +4,8 @@ import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-# Load the crop recommendation dataset (not fertilizer.csv)
-df = pd.read_csv('Data/Crop_recommendation.csv')
+# Load the crop recommendation dataset
+df = pd.read_csv('../backend/models/RandomForest.pkl')
 
 # Prepare features and target 
 features = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
@@ -29,7 +29,7 @@ rf_model = RandomForestClassifier(
 rf_model.fit(X_train, y_train)
 
 # Save the model
-model_path = 'models/RandomForest1.pkl'
+model_path = 'models/RandomForest_test.pkl'
 pickle.dump(rf_model, open(model_path, 'wb'))
 
 # Print model evaluation metrics

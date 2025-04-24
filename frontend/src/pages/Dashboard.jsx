@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
 import { Plane as Plant, Droplets, Microscope, AlertCircle } from 'lucide-react';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const [userName, setUserName] = useState('User');
 
   // Sample data for demonstration
   const recentActivities = [
@@ -22,11 +22,36 @@ const Dashboard = () => {
     forecast: 'Partly Cloudy'
   };
 
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/current-user', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const firstName = data.user.name.split(' ')[0];
+          setUserName(firstName);
+        }
+      } catch (error) {
+        console.error('Error fetching user name:', error);
+        setUserName('User');
+      }
+    };
+
+    fetchUserName();
+  }, []);
+
   return (
     <div className="dashboard-container">
       <div className="container">
         <div className="dashboard-header">
-          <h1 className="dashboard-title">Welcome, {currentUser?.name || 'User'}</h1>
+          <h1 className="dashboard-title">Welcome, {userName}  👋</h1>
           <p className="dashboard-subtitle">Your agricultural assistant dashboard</p>
         </div>
 

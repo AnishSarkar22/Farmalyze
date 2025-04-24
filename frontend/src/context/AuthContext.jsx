@@ -23,14 +23,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Regular user login
-  const login = (email, password) => {
-    // In a real app, this would be an API call
-    // For demo, we'll just simulate authentication
-    if (email && password) {
-      const user = { id: 'user-123', email, name: 'User', isAdmin: false };
-      setCurrentUser(user);
-      setIsAdmin(false);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+  const login = (userData) => {
+    if (userData && userData.access_token) {
+      setCurrentUser(userData);
+      localStorage.setItem('token', userData.access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
       return true;
     }
     return false;

@@ -90,7 +90,7 @@ const AdminLogin = () => {
           </div>
           
           <div className="admin-credentials-hint">
-            <p>For demo purposes: Email: admin@farmalyze.com / Password: admin123</p>
+            <p>For demo purposes: Email: admin@farmalyze.com & Password: admin123</p>
           </div>
           
           <button 

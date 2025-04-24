@@ -39,3 +39,5 @@ transformers==4.27.3
 datasets==2.1.0
 tokenizers==0.13.2
 flask-cors==3.0.10
+supabase==2.15.0
+python-dotenv==1.1.0
