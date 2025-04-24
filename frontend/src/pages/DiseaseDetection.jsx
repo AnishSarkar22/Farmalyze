@@ -59,7 +59,7 @@ const DiseaseDetection = () => {
     e.preventDefault();
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!selectedImage) {
@@ -70,36 +70,43 @@ const DiseaseDetection = () => {
     setLoading(true);
     setError('');
     
-    // Simulate API call for disease detection
-    setTimeout(() => {
-      // For demo purposes, we'll return mock results
-      // In a real app, this would call an ML model API
-      setResult({
-        diseaseName: 'Tomato Late Blight',
-        confidence: 92,
-        description: 'Late blight is a disease that affects tomatoes and potatoes, caused by the fungus-like organism Phytophthora infestans.',
-        symptoms: [
-          'Dark, water-soaked spots on leaves',
-          'White, fuzzy growth on leaf undersides',
-          'Brown lesions on stems',
-          'Firm, dark spots on fruits'
-        ],
-        treatments: [
-          'Remove and destroy infected plants',
-          'Apply fungicide containing chlorothalonil or mancozeb',
-          'Improve air circulation around plants',
-          'Avoid overhead watering'
-        ],
-        preventiveMeasures: [
-          'Use resistant varieties',
-          'Practice crop rotation',
-          'Plant in well-drained soil',
-          'Apply preventive fungicide before symptoms appear'
-        ]
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', selectedImage);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/disease-predict', {
+        method: 'POST',
+        body: formData
       });
       
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+      
+      if (data.success) {
+        setResult({
+          diseaseName: data.prediction,
+          // confidence: 95, // Add confidence if available from API
+          description: data.disease_info,
+          symptoms: [
+            'View detailed symptoms on disease info section',
+          ],
+          treatments: [
+            'View treatment options on disease info section',
+          ],
+          preventiveMeasures: [
+            'View prevention measures on disease info section',
+          ]
+        });
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
   
   const resetForm = () => {
@@ -201,7 +208,8 @@ const DiseaseDetection = () => {
                 <div className="disease-info">
                   <div className="disease-header">
                     <h3 className="disease-name">{result.diseaseName}</h3>
-                    <div className="disease-confidence">
+                    {/* :TODO: This section adds a prediction bar that displays the accuracy of the ML model (confidence)*/}
+                    {/* <div className="disease-confidence">
                       <div className="confidence-bar">
                         <div 
                           className="confidence-fill" 
@@ -209,7 +217,7 @@ const DiseaseDetection = () => {
                         ></div>
                       </div>
                       <span>{result.confidence}% Confidence</span>
-                    </div>
+                    </div> */}
                   </div>
                   
                   <p className="disease-description">{result.description}</p>
