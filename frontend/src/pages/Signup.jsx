@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 // import { useAuth } from '../context/AuthContext';
 import { Plane, AlertCircle } from 'lucide-react';
 import './Auth.css';
+import FarmalyzeIcon from '../assets/farmalyze-icon.svg';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -69,8 +70,7 @@ const Signup = () => {
       <div className="auth-card">
         <div className="auth-header">
           <Link to="/" className="auth-logo">
-            <Plane size={28} />
-            <span>Farmalyze</span>
+            <img src={FarmalyzeIcon} alt="Farmalyze Icon" className="auth-logo-icon" />
           </Link>
           <h1 className="auth-title">Create an Account</h1>
           <p className="auth-subtitle">Join Farmalyze to get personalized farming recommendations</p>

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { Plane, Tractor, Droplets, Microscope, TrendingUp } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import './LandingPage.css';
+import FarmalyzeLogo from "../assets/farmalyze.svg";
 
 const LandingPage = () => {
   const canvasRef = useRef(null);
@@ -197,9 +198,11 @@ const LandingPage = () => {
         <div className="container">
           <div className="footer-content">
             <div className="footer-logo">
-              <Plane className="logo-icon" />
-              <span>Farmalyze</span>
+            <Link to="/" className="navbar-logo">
+              <img src={FarmalyzeLogo} alt="Farmalyze Logo" className="logo-icon" />
+            </Link>
             </div>
+          
             <p className="footer-tagline">Empowering farmers with technology</p>
             <p className="copyright">© 2025 Farmalyze. All rights reserved.</p>
           </div>

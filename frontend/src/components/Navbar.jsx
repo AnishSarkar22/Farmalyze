@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, Home, Plane, Tractor, Droplets, Microscope, LayoutDashboard } from 'lucide-react';
-import './Navbar.css';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import {
+  Menu,
+  X,
+  LogOut,
+  Home,
+  Tractor,
+  Droplets,
+  Microscope,
+  LayoutDashboard,
+} from "lucide-react";
+import "./Navbar.css";
+import FarmalyzeLogo from "../assets/farmalyze.svg";
 
 const Navbar = () => {
   const { currentUser, isAdmin, logout } = useAuth();
@@ -20,31 +30,39 @@ const Navbar = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [scrolled]);
 
-  const handleLogout = async () => {
-      try {
-          const response = await fetch('http://127.0.0.1:8000/api/logout', {
-              method: 'POST',
-              credentials: 'include',
-              headers: {
-                  'Content-Type': 'application/json'
-              }
-          });
+  // const handleLogout = async () => {
+  //   try {
+  //     const response = await fetch("http://127.0.0.1:8000/api/logout", {
+  //       method: "POST",
+  //       credentials: "include",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
 
-          if (!response.ok) {
-              throw new Error('Logout failed');
-          }
+  //     if (!response.ok) {
+  //       throw new Error("Logout failed");
+  //     }
 
-          logout(); // Clear local auth context
-          navigate('/');
-      } catch (error) {
-          console.error('Logout error:', error);
-      }
+  //     logout(); // Clear local auth context
+  //     navigate("/");
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //   }
+  // };
+  const handleLogout = () => {
+    try {
+      logout(); // Clear local auth context
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const toggleMenu = () => {
@@ -56,11 +74,10 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+    <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="container navbar-container">
         <Link to="/" className="navbar-logo">
-          <Plane className="logo-icon" />
-          <span>Farmalyze</span>
+          <img src={FarmalyzeLogo} alt="Farmalyze Logo" className="logo-icon" />
         </Link>
 
         {/* Desktop Navigation */}
@@ -68,39 +85,71 @@ const Navbar = () => {
           {currentUser ? (
             <>
               {isAdmin ? (
-                <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>
+                <Link
+                  to="/admin"
+                  className={`nav-link ${
+                    location.pathname === "/admin" ? "active" : ""
+                  }`}
+                >
                   <LayoutDashboard size={18} />
                   <span>Admin</span>
                 </Link>
               ) : (
                 <>
-                  <Link to="/dashboard" className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+                  <Link
+                    to="/dashboard"
+                    className={`nav-link ${
+                      location.pathname === "/dashboard" ? "active" : ""
+                    }`}
+                  >
                     <LayoutDashboard size={18} />
                     <span>Dashboard</span>
                   </Link>
-                  <Link to="/crop" className={`nav-link ${location.pathname === '/crop' ? 'active' : ''}`}>
+                  <Link
+                    to="/crop"
+                    className={`nav-link ${
+                      location.pathname === "/crop" ? "active" : ""
+                    }`}
+                  >
                     <Tractor size={18} />
                     <span>Crop</span>
                   </Link>
-                  <Link to="/fertilizer" className={`nav-link ${location.pathname === '/fertilizer' ? 'active' : ''}`}>
+                  <Link
+                    to="/fertilizer"
+                    className={`nav-link ${
+                      location.pathname === "/fertilizer" ? "active" : ""
+                    }`}
+                  >
                     <Droplets size={18} />
                     <span>Fertilizer</span>
                   </Link>
-                  <Link to="/disease" className={`nav-link ${location.pathname === '/disease' ? 'active' : ''}`}>
+                  <Link
+                    to="/disease"
+                    className={`nav-link ${
+                      location.pathname === "/disease" ? "active" : ""
+                    }`}
+                  >
                     <Microscope size={18} />
                     <span>Disease</span>
                   </Link>
                 </>
               )}
-              <button onClick={handleLogout} className="btn btn-outline logout-btn">
+              <button
+                onClick={handleLogout}
+                className="btn btn-outline logout-btn"
+              >
                 <LogOut size={18} />
                 <span>Logout</span>
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="btn btn-outline">Login</Link>
-              <Link to="/admin-login" className="btn btn-primary ml-2">Admin Login</Link>
+              <Link to="/login" className="btn btn-outline">
+                Login
+              </Link>
+              <Link to="/admin-login" className="btn btn-primary ml-2">
+                Admin Login
+              </Link>
             </>
           )}
         </div>
@@ -114,7 +163,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation Menu */}
-      <div className={`mobile-nav ${isOpen ? 'open' : ''}`}>
+      <div className={`mobile-nav ${isOpen ? "open" : ""}`}>
         {currentUser ? (
           <div className="mobile-nav-links">
             {isAdmin ? (
@@ -124,25 +173,44 @@ const Navbar = () => {
               </Link>
             ) : (
               <>
-                <Link to="/dashboard" className="mobile-nav-link" onClick={closeMenu}>
+                <Link
+                  to="/dashboard"
+                  className="mobile-nav-link"
+                  onClick={closeMenu}
+                >
                   <LayoutDashboard size={20} />
                   <span>Dashboard</span>
                 </Link>
-                <Link to="/crop" className="mobile-nav-link" onClick={closeMenu}>
+                <Link
+                  to="/crop"
+                  className="mobile-nav-link"
+                  onClick={closeMenu}
+                >
                   <Tractor size={20} />
                   <span>Crop</span>
                 </Link>
-                <Link to="/fertilizer" className="mobile-nav-link" onClick={closeMenu}>
+                <Link
+                  to="/fertilizer"
+                  className="mobile-nav-link"
+                  onClick={closeMenu}
+                >
                   <Droplets size={20} />
                   <span>Fertilizer</span>
                 </Link>
-                <Link to="/disease" className="mobile-nav-link" onClick={closeMenu}>
+                <Link
+                  to="/disease"
+                  className="mobile-nav-link"
+                  onClick={closeMenu}
+                >
                   <Microscope size={20} />
                   <span>Disease</span>
                 </Link>
               </>
             )}
-            <button onClick={handleLogout} className="mobile-nav-link logout-mobile">
+            <button
+              onClick={handleLogout}
+              className="mobile-nav-link logout-mobile"
+            >
               <LogOut size={20} />
               <span>Logout</span>
             </button>
@@ -152,7 +220,11 @@ const Navbar = () => {
             <Link to="/login" className="mobile-nav-link" onClick={closeMenu}>
               Login
             </Link>
-            <Link to="/admin-login" className="mobile-nav-link admin-link" onClick={closeMenu}>
+            <Link
+              to="/admin-login"
+              className="mobile-nav-link admin-link"
+              onClick={closeMenu}
+            >
               Admin Login
             </Link>
           </div>

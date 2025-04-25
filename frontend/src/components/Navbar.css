@@ -48,7 +48,9 @@
   }
   
   .logo-icon {
-    margin-right: var(--spacing-1);
+    width: 150px;
+    height: 150px;
+    margin-right: 8px;
   }
   
   .navbar-links {
