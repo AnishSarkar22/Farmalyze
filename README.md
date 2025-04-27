@@ -115,12 +115,13 @@ This web-based platform includes three key applications:
    ```
    The application will be available at `http://127.0.0.1:5000/`
 
-**Note:** 
-- Make sure you have Python 3.9.6 installed on your system
-- To deactivate the virtual environment when done, simply type:
-  ```bash
-  deactivate
-  ```
+>**Note:**
+>
+>- Make sure you have Python 3.9.6 installed on your system
+>- To deactivate the virtual environment when done, simply type:
+  >  ```bash
+  >  deactivate
+  > ```
 
 ---
 

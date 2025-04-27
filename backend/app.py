@@ -15,7 +15,6 @@ from gemini import get_alternative_crops
 import requests
 import numpy as np
 import pandas as pd
-import config as config
 import pickle
 import io
 import torch
@@ -106,10 +105,10 @@ def weather_fetch(city_name):
     :params: city_name
     :return: temperature, humidity
     """
-    api_key = config.weather_api_key
+    weather_api_key=os.getenv("WEATHER_API_KEY")
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
 
-    complete_url = base_url + "appid=" + api_key + "&q=" + city_name
+    complete_url = base_url + "appid=" + weather_api_key + "&q=" + city_name
     response = requests.get(complete_url)
     x = response.json()
 
@@ -121,6 +120,68 @@ def weather_fetch(city_name):
         return temperature, humidity
     else:
         return None
+    
+
+
+
+# def weather_fetch(city_name):
+#     """
+#     Fetch weather data including forecast
+#     :params: city_name
+#     :return: temperature, humidity (for crop prediction)
+#              or full weather data (for dashboard)
+#     """
+#     weather_api_key=os.getenv("WEATHER_API_KEY")
+#     current_url = "http://api.openweathermap.org/data/2.5/weather?"
+#     forecast_url = "http://api.openweathermap.org/data/2.5/forecast?"
+
+#     # Get current weather
+#     current_complete_url = current_url + "appid=" + weather_api_key + "&q=" + city_name
+#     current_response = requests.get(current_complete_url)
+#     current_data = current_response.json()
+
+#     if current_data["cod"] != "404":
+#         current_weather = current_data["main"]
+#         temperature = round((current_weather["temp"] - 273.15), 2)
+#         humidity = current_weather["humidity"]
+
+#         # If called from dashboard route, return full weather data
+#         if request.endpoint == 'dashboard':
+#             weather_description = current_data["weather"][0]["description"]
+            
+#             # Get rainfall data
+#             rainfall = 0
+#             if "rain" in current_data:
+#                 rainfall = current_data["rain"].get("1h", 0)
+            
+#             # Get forecast data
+#             forecast_response = requests.get(forecast_url + "appid=" + weather_api_key + "&q=" + city_name)
+#             forecast_data = forecast_response.json()
+            
+#             forecast = []
+#             for item in forecast_data["list"][:5]:
+#                 forecast.append({
+#                     "datetime": item["dt_txt"],
+#                     "temp": round((item["main"]["temp"] - 273.15), 2),
+#                     "humidity": item["main"]["humidity"],
+#                     "description": item["weather"][0]["description"],
+#                     "rainfall": item["rain"]["3h"] if "rain" in item else 0
+#                 })
+            
+#             return {
+#                 "current": {
+#                     "temperature": temperature,
+#                     "humidity": humidity,
+#                     "rainfall": rainfall,
+#                     "description": weather_description
+#                 },
+#                 "forecast": forecast
+#             }
+        
+#         # If called from crop prediction, return just temperature and humidity
+#         return temperature, humidity
+    
+#     return None
 
 def predict_image(img, model=disease_model):
     """
@@ -266,6 +327,9 @@ def test_connection():
             'connection': 'offline'
         }), 500
 
+# ===============================================================================================
+# AUTH ROUTES
+
 # Route for Signup endpoint
 @app.route("/api/signup", methods=['POST'])
 def signup():
@@ -367,6 +431,9 @@ def logout():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ===============================================================================================
+# FETCH DATA ROUTES
+
 # Get current user data
 @app.route('/api/current-user', methods=['GET', 'OPTIONS'])
 def get_current_user():
@@ -398,6 +465,86 @@ def get_current_user():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/api/weather', methods=['GET'])
+def get_weather_data():
+    try:
+        # Get coordinates from request
+        lat = request.args.get('lat')
+        lon = request.args.get('lon')
+        weather_api_key = os.getenv("WEATHER_API_KEY")
+        
+        if not all([lat, lon]):
+            return jsonify({
+                'success': False,
+                'error': 'Location coordinates required'
+            }), 400
+            
+        # Use coordinates for weather data
+        current_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={weather_api_key}"
+        forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={weather_api_key}"
+
+
+        # Get current weather
+        current_response = requests.get(current_url)
+        current_data = current_response.json()
+
+        if current_data["cod"] != "404":
+            # Get forecast data
+            forecast_response = requests.get(forecast_url)
+            forecast_data = forecast_response.json()
+
+            # Process current weather
+            temperature = round((current_data["main"]["temp"] - 273.15), 2)
+            humidity = current_data["main"]["humidity"]
+            description = current_data["weather"][0]["description"]
+            wind_speed = current_data["wind"]["speed"]
+            location = f"{current_data['name']}, {current_data['sys']['country']}"
+            
+            # Get rainfall data
+            rainfall = 0
+            if "rain" in current_data:
+                rainfall = current_data["rain"].get("1h", 0)
+
+            # Process forecast data (next 5 days)
+            forecast = []
+            for item in forecast_data["list"][:5]:  # Get next 5 time slots
+                forecast.append({
+                    "datetime": item["dt_txt"],
+                    "temp": round((item["main"]["temp"] - 273.15), 2),
+                    "humidity": item["main"]["humidity"],
+                    "description": item["weather"][0]["description"],
+                    "rainfall": item["rain"]["3h"] if "rain" in item else 0
+                })
+
+            return jsonify({
+                'success': True,
+                'data': {
+                    'current': {
+                        'location': location,
+                        'temperature': f"{temperature}°C",
+                        'humidity': f"{humidity}%",
+                        'rainfall': f"{rainfall}mm",
+                        'description': description.title(),
+                        'wind_speed': f"{wind_speed}m/s"
+                    },
+                    'forecast': forecast
+                }
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Location not found'
+            }), 404
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ===============================================================================================
+# DISEASE PREDICTION
 
 @app.route('/api/disease-predict', methods=['POST'])
 # @login_required
@@ -435,7 +582,6 @@ def api_disease_prediction():
         }), 400
 
 # ===============================================================================================
-
 # RENDER PREDICTION PAGES
 
 # render crop recommendation result page
@@ -535,6 +681,9 @@ def api_fertilizer_prediction():
             'error': str(e)
         }), 400
 
+# ===============================================================================================
+# ADMIN ROUTES
+
 @app.route("/AdminLogin", methods=['GET', 'POST'])
 def AdminLogin():
 
@@ -550,14 +699,6 @@ def AdminLogin():
                 return redirect(url_for('admindashboard'))
 
     return render_template("adminlogin.html", form=form)
-
-
-# @app.route("/admindashboard")
-# @login_required
-# def admindashboard():
-#     alltodo = ContactUs.query.all()
-#     alluser = User.query.all()
-#     return render_template("admindashboard.html",alltodo=alltodo, alluser=alluser)
 
 @app.route("/reg",methods=['GET', 'POST'])
 def reg():

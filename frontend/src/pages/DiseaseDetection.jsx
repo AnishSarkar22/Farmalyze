@@ -222,7 +222,7 @@ const DiseaseDetection = () => {
                   
                   <p className="disease-description">{result.description}</p>
                   
-                  <div className="disease-details">
+                  {/* <div className="disease-details">
                     <div className="detail-section">
                       <h4>Symptoms</h4>
                       <ul className="detail-list">
@@ -249,10 +249,10 @@ const DiseaseDetection = () => {
                         ))}
                       </ul>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
-              
+
               <div className="result-actions">
                 <button 
                   className="btn btn-outline" 
