@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AlertCircle, Tractor, Check } from "lucide-react";
-import "./Form.css";
-import { state_arr, s_a } from "../components/cities.js";
+import "../styles/Form.css";
+import { state_arr, s_a } from "../utils/cities.js";
 
 const CropRecommendation = () => {
   const [formData, setFormData] = useState({

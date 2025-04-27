@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { BarChart, Users, FileText, Activity, Search } from 'lucide-react';
-import './AdminDashboard.css';
+import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();

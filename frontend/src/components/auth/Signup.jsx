@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../../context/AuthContext';
 import { Plane, AlertCircle } from 'lucide-react';
-import './Auth.css';
-import FarmalyzeIcon from '../assets/farmalyze-icon.svg';
+import '../../styles/Auth.css';
+import FarmalyzeIcon from '../../assets/farmalyze-icon.svg';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -38,7 +38,7 @@ const Signup = () => {
       setError('');
       setLoading(true);
       
-      const response = await fetch('http://localhost:8000/api/signup', {
+      const response = await fetch('http://localhost:8000/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,6 +65,23 @@ const Signup = () => {
     }
   };
 
+  const handleGoogleSignup = async () => {
+    try {
+      setError('');
+      const response = await fetch('http://127.0.0.1:8000/api/auth/google');
+      const data = await response.json();
+      
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        setError('Failed to initiate Google sign in');
+      }
+    } catch (err) {
+      setError('Failed to sign in with Google. Please try again.');
+      console.error(err);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -82,6 +99,7 @@ const Signup = () => {
             <span>{error}</span>
           </div>
         )}
+        
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -142,6 +160,19 @@ const Signup = () => {
             disabled={loading}
           >
             {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+
+          <button 
+            type="button" 
+            className="btn btn-google auth-submit" 
+            onClick={handleGoogleSignup}
+          >
+            <img 
+              src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg" 
+              alt="Google" 
+              style={{ width: '18px', marginRight: '10px' }} 
+            />
+            Sign up with Google
           </button>
         </form>
         

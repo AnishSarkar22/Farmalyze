@@ -11,7 +11,7 @@ import {
   Microscope,
   LayoutDashboard,
 } from "lucide-react";
-import "./Navbar.css";
+import "../styles/Navbar.css";
 import FarmalyzeLogo from "../assets/farmalyze.svg";
 
 const Navbar = () => {

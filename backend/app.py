@@ -120,68 +120,6 @@ def weather_fetch(city_name):
         return temperature, humidity
     else:
         return None
-    
-
-
-
-# def weather_fetch(city_name):
-#     """
-#     Fetch weather data including forecast
-#     :params: city_name
-#     :return: temperature, humidity (for crop prediction)
-#              or full weather data (for dashboard)
-#     """
-#     weather_api_key=os.getenv("WEATHER_API_KEY")
-#     current_url = "http://api.openweathermap.org/data/2.5/weather?"
-#     forecast_url = "http://api.openweathermap.org/data/2.5/forecast?"
-
-#     # Get current weather
-#     current_complete_url = current_url + "appid=" + weather_api_key + "&q=" + city_name
-#     current_response = requests.get(current_complete_url)
-#     current_data = current_response.json()
-
-#     if current_data["cod"] != "404":
-#         current_weather = current_data["main"]
-#         temperature = round((current_weather["temp"] - 273.15), 2)
-#         humidity = current_weather["humidity"]
-
-#         # If called from dashboard route, return full weather data
-#         if request.endpoint == 'dashboard':
-#             weather_description = current_data["weather"][0]["description"]
-            
-#             # Get rainfall data
-#             rainfall = 0
-#             if "rain" in current_data:
-#                 rainfall = current_data["rain"].get("1h", 0)
-            
-#             # Get forecast data
-#             forecast_response = requests.get(forecast_url + "appid=" + weather_api_key + "&q=" + city_name)
-#             forecast_data = forecast_response.json()
-            
-#             forecast = []
-#             for item in forecast_data["list"][:5]:
-#                 forecast.append({
-#                     "datetime": item["dt_txt"],
-#                     "temp": round((item["main"]["temp"] - 273.15), 2),
-#                     "humidity": item["main"]["humidity"],
-#                     "description": item["weather"][0]["description"],
-#                     "rainfall": item["rain"]["3h"] if "rain" in item else 0
-#                 })
-            
-#             return {
-#                 "current": {
-#                     "temperature": temperature,
-#                     "humidity": humidity,
-#                     "rainfall": rainfall,
-#                     "description": weather_description
-#                 },
-#                 "forecast": forecast
-#             }
-        
-#         # If called from crop prediction, return just temperature and humidity
-#         return temperature, humidity
-    
-#     return None
 
 def predict_image(img, model=disease_model):
     """
@@ -211,8 +149,12 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": "*",
+        # "origins": ["http://localhost:5173"],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "allow_credentials": True,
+        "expose_headers": ["Set-Cookie"]
     }
 })
 
@@ -291,23 +233,6 @@ def health_check():
         'uptime': 'active'
     })
 
-# @app.route("/aboutus")
-# def aboutus():
-#     return render_template("aboutus.html")
-
-# @app.route("/contact", methods=['GET', 'POST'])
-# def contact():
-#     if request.method=='POST':
-#         name = request.form['name']
-#         email = request.form['email']
-#         text = request.form['text']
-#         contacts = ContactUs(name=name, email=email, text=text)
-#         db.session.add(contacts)
-#         db.session.commit()
-    
-#     return render_template("contact.html")
-
-
 # test supabase connection
 @app.route("/api/test-connection")
 def test_connection():
@@ -331,7 +256,7 @@ def test_connection():
 # AUTH ROUTES
 
 # Route for Signup endpoint
-@app.route("/api/signup", methods=['POST'])
+@app.route("/api/auth/signup", methods=['POST'])
 def signup():
     try:
         data = request.get_json()
@@ -378,7 +303,7 @@ def signup():
         }), 400
 
 # Route for Signin endpoint
-@app.route("/api/login", methods=['POST'])
+@app.route("/api/auth/login", methods=['POST'])
 def login():
     try:
         data = request.get_json()
@@ -407,9 +332,7 @@ def login():
                     'access_token': auth_response.session.access_token,
                     'refresh_token': auth_response.session.refresh_token
                 }
-            })
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            return response, 200
+            }), 200
 
         return jsonify({
             'success': False,
@@ -421,6 +344,94 @@ def login():
             'success': False,
             'error': str(e)
         }), 400
+
+@app.route('/api/auth/google', methods=['GET'])
+def google_oauth():
+    try:
+        # Generate PKCE verifier and challenge
+        auth_response = supabase.auth.sign_in_with_oauth({
+            "provider": "google",
+            "options": {
+                "redirect_to": "http://localhost:5173/auth/callback",
+                "scopes": "email profile",
+                "queryParams": {
+                    "access_type": "offline",
+                    "prompt": "consent"
+                }
+            }
+        })
+
+        if not auth_response.url:
+            raise Exception("Failed to get OAuth URL")
+
+        # Store PKCE state
+        response = jsonify({
+            'success': True,
+            'url': auth_response.url,
+        })
+        
+        return response, 200
+
+    except Exception as e:
+        print(f"OAuth error: {str(e)}")  # Debug logging
+        return jsonify({
+            'success': False, 
+            'error': str(e)
+        }), 500
+
+@app.route('/api/auth/google/callback', methods=['POST'])
+def google_oauth_callback():
+    try:
+        data = request.get_json()
+        code = data.get('code')
+
+        if not code:
+            raise Exception("No authorization code provided")
+
+        # Exchange code for session
+        auth_response = supabase.auth.exchange_code_for_session({
+            "code": code
+        })
+        
+        # Check if we have a valid session
+        if not auth_response or not auth_response.session:
+            raise Exception("Failed to get user session")
+
+        # Get user data
+        user_response = supabase.auth.get_user(auth_response.session.access_token)
+        
+        if not user_response or not user_response.user:
+            raise Exception("Failed to get user data")
+
+        # Set session cookie
+        response = jsonify({
+            'success': True,
+            'user': {
+                'id': user_response.user.id,
+                'email': user_response.user.email,
+                'name': user_response.user.user_metadata.get('full_name'),
+                'access_token': auth_response.session.access_token
+            }
+        })
+        
+        # Set secure cookie
+        response.set_cookie(
+            'sb-access-token',
+            auth_response.session.access_token,
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+            max_age=3600  # 1 hour
+        )
+        
+        return response, 200
+
+    except Exception as e:
+        print(f"OAuth callback error: {str(e)}")  # Add debugging
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 #Route for logout endpoint
 @app.route('/api/logout', methods=['POST'])
@@ -438,23 +449,21 @@ def logout():
 @app.route('/api/current-user', methods=['GET', 'OPTIONS'])
 def get_current_user():
     if request.method == 'OPTIONS':
-        response = app.make_default_options_response()
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        # Handle preflight request
+        response = jsonify({})
         return response
-
+    
     try:
         user = supabase.auth.get_user()
         if user and user.user:
-            response = jsonify({
+            return jsonify({
                 'success': True,
                 'user': {
                     'id': user.user.id,
                     'email': user.user.email,
                     'name': user.user.user_metadata.get('full_name', 'User')
                 }
-            })
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            return response, 200
+            }), 200
             
         return jsonify({
             'success': False,

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import * as THREE from 'three';
 import { Plane, Tractor, Droplets, Microscope, TrendingUp } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import './LandingPage.css';
+import '../styles/LandingPage.css';
 import FarmalyzeLogo from "../assets/farmalyze.svg";
 
 const LandingPage = () => {

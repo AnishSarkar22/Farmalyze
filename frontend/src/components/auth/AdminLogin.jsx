@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { Tractor, AlertCircle, Lock } from 'lucide-react';
-import './Auth.css';
+import '../../styles/Auth.css';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { AlertCircle, Upload, Microscope, Check, X } from 'lucide-react';
-import './Form.css';
-import './DiseaseDetection.css';
+import '../styles/Form.css';
+import '../styles/DiseaseDetection.css';
 
 const DiseaseDetection = () => {
   const [selectedImage, setSelectedImage] = useState(null);

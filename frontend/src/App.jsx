@@ -1,17 +1,18 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Login from './components/auth/Login';
+import Signup from './components/auth/Signup';
 import Dashboard from './pages/Dashboard';
 import CropRecommendation from './pages/CropRecommendation';
 import FertilizerRecommendation from './pages/FertilizerRecommendation';
 import DiseaseDetection from './pages/DiseaseDetection';
-import AdminLogin from './pages/AdminLogin';
+import AdminLogin from './components/auth/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
+import AdminRoute from './components/routes/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
+import AuthCallback from './pages/AuthCallback';
 import './App.css';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

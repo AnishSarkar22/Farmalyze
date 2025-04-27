@@ -15,7 +15,7 @@ import {
   CloudDrizzle,
 } from "lucide-react";
 
-import "./Dashboard.css";
+import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const [userName, setUserName] = useState("User");

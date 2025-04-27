@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { AlertCircle } from 'lucide-react';
-import './Auth.css';
-import FarmalyzeIcon from '../assets/farmalyze-icon.svg';
+import '../../styles/Auth.css';
+import FarmalyzeIcon from '../../assets/farmalyze-icon.svg';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +25,7 @@ const Login = () => {
       setError('');
       setLoading(true);
       
-      const response = await fetch('http://127.0.0.1:8000/api/login', {
+      const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,6 +54,23 @@ const Login = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      setError('');
+      const response = await fetch('http://127.0.0.1:8000/api/auth/google');
+      const data = await response.json();
+      
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        setError('Failed to initiate Google sign in');
+      }
+    } catch (err) {
+      setError('Failed to sign in with Google. Please try again.');
+      console.error(err);
     }
   };
 
@@ -110,6 +127,20 @@ const Login = () => {
           >
             {loading ? 'Logging in...' : 'Log In'}
           </button>
+
+          <button 
+            type="button" 
+            className="btn btn-google auth-submit" 
+            onClick={handleGoogleSignup}
+          >
+            <img 
+              src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg" 
+              alt="Google" 
+              style={{ width: '18px', marginRight: '10px' }} 
+            />
+            Log In with Google
+          </button>
+
         </form>
         
         <div className="auth-footer">

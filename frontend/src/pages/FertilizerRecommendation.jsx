@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AlertCircle, Droplets, Check } from "lucide-react";
 import parse from 'html-react-parser';
-import "./Form.css";
+import "../styles/Form.css";
 
 const FertilizerRecommendation = () => {
   const [formData, setFormData] = useState({
