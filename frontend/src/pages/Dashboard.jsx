@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-// import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import {
   Tractor,
   Droplets,
@@ -18,6 +18,7 @@ import {
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
+  const { currentUser } = useAuth();
   const [userName, setUserName] = useState("User");
 
   // Sample data for demonstration
@@ -120,29 +121,12 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/api/current-user", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const firstName = data.user.name.split(" ")[0];
-          setUserName(firstName);
-        }
-      } catch (error) {
-        console.error("Error fetching user name:", error);
-        setUserName("User");
-      }
-    };
-
-    fetchUserName();
-  }, []);
+    // Set user name from Supabase user data
+    if (currentUser?.user_metadata?.full_name) {
+      const firstName = currentUser.user_metadata.full_name.split(" ")[0];
+      setUserName(firstName);
+    }
+  }, [currentUser]);
 
   return (
     <div className="dashboard-container">

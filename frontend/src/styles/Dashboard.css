@@ -1,5 +1,6 @@
 .dashboard-container {
     padding: var(--spacing-4) 0;
+    margin-top: 5rem;
   }
   
   .dashboard-header {

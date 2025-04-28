@@ -1,41 +1,30 @@
 # updated crop disease detection model using huggingface https://huggingface.co/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification model
-import string
 import os
-import bcrypt
-from flask import Flask, jsonify, redirect, render_template, url_for, request, Markup
+import json
+from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired, Length, ValidationError
-from flask_wtf import FlaskForm
-from flask_bcrypt import Bcrypt
-from datetime import datetime
-from gemini import get_alternative_crops
 import requests
 import numpy as np
 import pandas as pd
 import pickle
 import io
 import torch
+from datetime import datetime
+from gemini import get_alternative_crops
 from torchvision import transforms
-
-from supabase import create_client, Client
-from postgrest.exceptions import APIError
-
-from utils.model import ResNet9
+# from supabase import create_client, Client
 from utils.fertilizer import fertilizer_dic
 from utils.disease import disease_dic
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 from PIL import Image
-
 from dotenv import load_dotenv
+
 load_dotenv()
 
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
-)
+# supabase: Client = create_client(
+#     os.getenv("SUPABASE_URL"),
+#     os.getenv("SUPABASE_KEY")
+# )
 
 # -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
 
@@ -98,7 +87,6 @@ disease_model = AutoModelForImageClassification.from_pretrained(model_name)
 disease_model.eval()
 
 
-
 def weather_fetch(city_name):
     """
     Fetch and returns the temperature and humidity of a city
@@ -150,7 +138,7 @@ CORS(app, resources={
     r"/api/*": {
         "origins": "*",
         # "origins": ["http://localhost:5173"],
-        "methods": ["GET", "POST", "OPTIONS"],
+        "methods": ["GET", "POST", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True,
         "allow_credentials": True,
@@ -158,64 +146,12 @@ CORS(app, resources={
     }
 })
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "database.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = '3e9u8wyfgbhjvsiuy78tqwdegufcbhsj'
 app.config['JSON_SORT_KEYS'] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['CORS_SUPPORTS_CREDENTIALS'] = True
 
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
-
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-class User(db.Model,UserMixin):
-    id = db.Column(db.Integer,primary_key=True)
-    username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=False)
-
-class UserAdmin(db.Model,UserMixin):
-    id = db.Column(db.Integer,primary_key=True)
-    username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=False)
-
-class RegisterForm(FlaskForm):
-    username=StringField(validators=[InputRequired(),Length(min=5,max=20)],render_kw={"placeholder":"username"})
-    password=PasswordField(validators=[InputRequired(),Length(min=5,max=20)],render_kw={"placeholder":"password"})
-    submit = SubmitField("Register")
-
-    def validate_username(self, username):
-        existing_user_username = User.query.filter_by(username=username.data).first()
-        if existing_user_username:
-            raise ValidationError("That username already exist. please choose different one.")
-
-class LoginForm(FlaskForm):
-    username=StringField(validators=[InputRequired(),Length(min=5,max=20)],render_kw={"placeholder":"username"})
-    password=PasswordField(validators=[InputRequired(),Length(min=5,max=20)],render_kw={"placeholder":"password"})
-    submit = SubmitField("Login")
-
-
-class ContactUs(db.Model):
-    sno = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(500), nullable=False)
-    text = db.Column(db.String(900), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self) -> str:
-        return f"{self.sno} - {self.title}"
-
 # ===============================================================================================
+# TEST ROUTES
 
 @app.route("/")
 def home():
@@ -234,246 +170,58 @@ def health_check():
     })
 
 # test supabase connection
-@app.route("/api/test-connection")
-def test_connection():
-    try:        
-        return jsonify({
-            'status': 'success',
-            'message': 'Successfully connected to Supabase',
-            'timestamp': datetime.now().isoformat(),
-            'connection': 'online'
-        }), 200
+# @app.route("/api/test-connection")
+# def test_connection():
+#     try:        
+#         return jsonify({
+#             'status': 'success',
+#             'message': 'Successfully connected to Supabase',
+#             'timestamp': datetime.now().isoformat(),
+#             'connection': 'online'
+#         }), 200
         
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': 'Failed to connect to Supabase',
-            'error': str(e),
-            'connection': 'offline'
-        }), 500
+#     except Exception as e:
+#         return jsonify({
+#             'status': 'error',
+#             'message': 'Failed to connect to Supabase',
+#             'error': str(e),
+#             'connection': 'offline'
+#         }), 500
+
 
 # ===============================================================================================
-# AUTH ROUTES
 
-# Route for Signup endpoint
-@app.route("/api/auth/signup", methods=['POST'])
-def signup():
-    try:
-        data = request.get_json()
-        name = data.get('name')
-        email = data.get('email')
-        password = data.get('password')
-
-        if not all([name, email, password]):
-            return jsonify({
-                'success': False,
-                'error': 'Missing required fields'
-            }), 400
-
-        auth_response = supabase.auth.sign_up({
-            "email": email,
-            "password": password,
-            "options": {
-                "data": {
-                    "full_name": name
-                }
-            }
-        })
-
-        if auth_response.user:
-            return jsonify({
-                'success': True,
-                'message': 'User created successfully',
-                'user': {
-                    'id': auth_response.user.id,
-                    'email': email,
-                    'name': name
-                }
-            }), 201
-
-        return jsonify({
-            'success': False,
-            'error': 'Failed to create user'
-        }), 400
-
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 400
-
-# Route for Signin endpoint
-@app.route("/api/auth/login", methods=['POST'])
-def login():
-    try:
-        data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
-
-        if not all([email, password]):
-            return jsonify({
-                'success': False,
-                'error': 'Missing required fields'
-            }), 400
-
-        # Sign in with Supabase Auth
-        auth_response = supabase.auth.sign_in_with_password({
-            "email": email,
-            "password": password
-        })
-
-        if auth_response.user:
-            return jsonify({
-                'success': True,
-                'message': 'Login successful',
-                'user': {
-                    'id': auth_response.user.id,
-                    'email': auth_response.user.email,
-                    'access_token': auth_response.session.access_token,
-                    'refresh_token': auth_response.session.refresh_token
-                }
-            }), 200
-
-        return jsonify({
-            'success': False,
-            'error': 'Invalid credentials'
-        }), 401
-
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 400
-
-@app.route('/api/auth/google', methods=['GET'])
-def google_oauth():
-    try:
-        # Generate PKCE verifier and challenge
-        auth_response = supabase.auth.sign_in_with_oauth({
-            "provider": "google",
-            "options": {
-                "redirect_to": "http://localhost:5173/auth/callback",
-                "scopes": "email profile",
-                "queryParams": {
-                    "access_type": "offline",
-                    "prompt": "consent"
-                }
-            }
-        })
-
-        if not auth_response.url:
-            raise Exception("Failed to get OAuth URL")
-
-        # Store PKCE state
-        response = jsonify({
-            'success': True,
-            'url': auth_response.url,
-        })
+# routes to handle session storage
+@app.route('/api/auth/session', methods=['GET', 'POST', 'DELETE'])
+def handle_session():
+    if request.method == 'GET':
+        # Get session from secure cookie
+        session = request.cookies.get('sb-auth-token')
+        return jsonify({'session': json.loads(session) if session else None})
         
-        return response, 200
-
-    except Exception as e:
-        print(f"OAuth error: {str(e)}")  # Debug logging
-        return jsonify({
-            'success': False, 
-            'error': str(e)
-        }), 500
-
-@app.route('/api/auth/google/callback', methods=['POST'])
-def google_oauth_callback():
-    try:
-        data = request.get_json()
-        code = data.get('code')
-
-        if not code:
-            raise Exception("No authorization code provided")
-
-        # Exchange code for session
-        auth_response = supabase.auth.exchange_code_for_session({
-            "code": code
-        })
-        
-        # Check if we have a valid session
-        if not auth_response or not auth_response.session:
-            raise Exception("Failed to get user session")
-
-        # Get user data
-        user_response = supabase.auth.get_user(auth_response.session.access_token)
-        
-        if not user_response or not user_response.user:
-            raise Exception("Failed to get user data")
-
-        # Set session cookie
-        response = jsonify({
-            'success': True,
-            'user': {
-                'id': user_response.user.id,
-                'email': user_response.user.email,
-                'name': user_response.user.user_metadata.get('full_name'),
-                'access_token': auth_response.session.access_token
-            }
-        })
-        
-        # Set secure cookie
+    elif request.method == 'POST':
+        # Store session in secure cookie
+        data = request.json
+        response = make_response(jsonify({'success': True}))
         response.set_cookie(
-            'sb-access-token',
-            auth_response.session.access_token,
+            'sb-auth-token',
+            json.dumps(data['session']),
             httponly=True,
             secure=True,
-            samesite='Lax',
-            max_age=3600  # 1 hour
+            samesite='Strict',
+            max_age=7 * 24 * 60 * 60  # 7 days
         )
-        
-        return response, 200
+        return response
 
-    except Exception as e:
-        print(f"OAuth callback error: {str(e)}")  # Add debugging
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    elif request.method == 'DELETE':
+        # Clear session cookie
+        response = make_response(jsonify({'success': True}))
+        response.delete_cookie('sb-auth-token')
+        return response
 
-#Route for logout endpoint
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    try:
-        response = supabase.auth.sign_out()
-        return jsonify({"message": "Logged out successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 # ===============================================================================================
 # FETCH DATA ROUTES
-
-# Get current user data
-@app.route('/api/current-user', methods=['GET', 'OPTIONS'])
-def get_current_user():
-    if request.method == 'OPTIONS':
-        # Handle preflight request
-        response = jsonify({})
-        return response
-    
-    try:
-        user = supabase.auth.get_user()
-        if user and user.user:
-            return jsonify({
-                'success': True,
-                'user': {
-                    'id': user.user.id,
-                    'email': user.user.email,
-                    'name': user.user.user_metadata.get('full_name', 'User')
-                }
-            }), 200
-            
-        return jsonify({
-            'success': False,
-            'error': 'No user found'
-        }), 401
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
 
 @app.route('/api/weather', methods=['GET'])
 def get_weather_data():
@@ -689,39 +437,6 @@ def api_fertilizer_prediction():
             'success': False,
             'error': str(e)
         }), 400
-
-# ===============================================================================================
-# ADMIN ROUTES
-
-@app.route("/AdminLogin", methods=['GET', 'POST'])
-def AdminLogin():
-
-    form = LoginForm()
-    if current_user.is_authenticated:
-         return redirect(url_for('admindashboard'))
-
-    elif form.validate_on_submit():
-        user = UserAdmin.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password,form.password.data):
-                login_user(user)
-                return redirect(url_for('admindashboard'))
-
-    return render_template("adminlogin.html", form=form)
-
-@app.route("/reg",methods=['GET', 'POST'])
-def reg():
-    form = RegisterForm()
-
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = UserAdmin(username=form.username.data, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('AdminLogin'))
-
-    return render_template("reg.html", form=form)
-
 
 if __name__ == "__main__":
     app.run(debug=True, host='127.0.0.1', port=8000)

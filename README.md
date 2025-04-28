@@ -113,7 +113,7 @@ This web-based platform includes three key applications:
    # run the below code inside backend directory
    python app.py
    ```
-   The application will be available at `http://127.0.0.1:5000/`
+   The application will be available at `http://127.0.0.1:8000/`
 
 >**Note:**
 >

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { AlertCircle } from 'lucide-react';
+import { signInWithEmail, signInWithGoogle } from '../../utils/auth';
 import '../../styles/Auth.css';
 import FarmalyzeIcon from '../../assets/farmalyze-icon.svg';
 
@@ -25,51 +26,27 @@ const Login = () => {
       setError('');
       setLoading(true);
       
-      const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update auth context with user data
-        const success = await login(data.user);
-        if (success) {
-          navigate('/dashboard');
-        } else {
-          setError('Failed to set user session');
-        }
-      } else {
-        setError(data.error || 'Invalid credentials');
+      const { user } = await signInWithEmail(email, password);
+      
+      if (user) {
+        await login(user);
+        navigate('/dashboard');
       }
     } catch (err) {
-      setError('Failed to log in. Please try again.');
+      setError(err.message || 'Failed to log in');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignup = async () => {
+  const handleGoogleLogin = async () => {
     try {
       setError('');
-      const response = await fetch('http://127.0.0.1:8000/api/auth/google');
-      const data = await response.json();
-      
-      if (data.success && data.url) {
-        window.location.href = data.url;
-      } else {
-        setError('Failed to initiate Google sign in');
-      }
+      await signInWithGoogle();
+      // Auth callback will handle the redirect
     } catch (err) {
-      setError('Failed to sign in with Google. Please try again.');
+      setError('Failed to sign in with Google');
       console.error(err);
     }
   };
@@ -131,7 +108,7 @@ const Login = () => {
           <button 
             type="button" 
             className="btn btn-google auth-submit" 
-            onClick={handleGoogleSignup}
+            onClick={handleGoogleLogin}
           >
             <img 
               src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg" 
@@ -146,9 +123,6 @@ const Login = () => {
         <div className="auth-footer">
           <p>
             Don't have an account? <Link to="/signup" className="auth-link">Sign Up</Link>
-          </p>
-          <p>
-            <Link to="/admin-login" className="auth-link">Admin Login</Link>
           </p>
         </div>
       </div>

@@ -7,10 +7,10 @@ import Dashboard from './pages/Dashboard';
 import CropRecommendation from './pages/CropRecommendation';
 import FertilizerRecommendation from './pages/FertilizerRecommendation';
 import DiseaseDetection from './pages/DiseaseDetection';
-import AdminLogin from './components/auth/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/routes/AdminRoute';
+// import AdminLogin from './components/auth/AdminLogin';
+// import AdminDashboard from './pages/AdminDashboard';
+import ProtectedRoute from './components/routes/ProtectedRoute';
+// import AdminRoute from './components/routes/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
 import AuthCallback from './pages/AuthCallback';
 import './App.css';
@@ -23,7 +23,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
+          {/* <Route path="/admin-login" element={<AdminLogin />} /> */}
           <Route path="/auth/callback" element={<AuthCallback />} />
           
           <Route element={<ProtectedRoute />}>
@@ -33,9 +33,9 @@ function App() {
             <Route path="/disease" element={<DiseaseDetection />} />
           </Route>
           
-          <Route element={<AdminRoute />}>
+          {/* <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminDashboard />} />
-          </Route>
+          </Route> */}
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

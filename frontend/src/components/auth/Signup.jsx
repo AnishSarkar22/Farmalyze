@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // import { useAuth } from '../../context/AuthContext';
 import { Plane, AlertCircle } from 'lucide-react';
+import { signUpWithEmail, signInWithGoogle } from '../../utils/auth';
 import '../../styles/Auth.css';
 import FarmalyzeIcon from '../../assets/farmalyze-icon.svg';
 
@@ -15,7 +16,6 @@ const Signup = () => {
   // const { signup } = useAuth();
   const navigate = useNavigate();
 
-  // Update the handleSubmit function:
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -38,27 +38,17 @@ const Signup = () => {
       setError('');
       setLoading(true);
       
-      const response = await fetch('http://localhost:8000/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password
-        })
+      const { user } = await signUpWithEmail(email, password, {
+        full_name: name
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        navigate('/login');
-      } else {
-        setError(data.error || 'Failed to create account');
+      
+      if (user) {
+        navigate('/login', { 
+          state: { message: 'Please check your email to verify your account' } 
+        });
       }
     } catch (err) {
-      setError('Failed to create an account. Please try again.');
+      setError(err.message || 'Failed to create account');
       console.error(err);
     } finally {
       setLoading(false);
@@ -68,16 +58,10 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
     try {
       setError('');
-      const response = await fetch('http://127.0.0.1:8000/api/auth/google');
-      const data = await response.json();
-      
-      if (data.success && data.url) {
-        window.location.href = data.url;
-      } else {
-        setError('Failed to initiate Google sign in');
-      }
+      await signInWithGoogle();
+      // Auth callback will handle the redirect
     } catch (err) {
-      setError('Failed to sign in with Google. Please try again.');
+      setError('Failed to sign up with Google');
       console.error(err);
     }
   };
