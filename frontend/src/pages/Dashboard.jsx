@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../config/supabase.js";
+import parse from "html-react-parser";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import {
   Tractor,
   Droplets,
@@ -23,7 +26,11 @@ const Dashboard = () => {
   const [userName, setUserName] = useState("User");
   const [recentActivities, setRecentActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedActivities, setExpandedActivities] = useState(false);
+  const [expandedActivityId, setExpandedActivityId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreActivities, setHasMoreActivities] = useState(true);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(true);
+  const ACTIVITIES_PER_PAGE = 10;
 
   useEffect(() => {
     const fetchUserActivities = async () => {
@@ -32,18 +39,21 @@ const Dashboard = () => {
       try {
         setIsLoading(true);
 
-        const { data, error } = await supabase
+        const from = (currentPage - 1) * ACTIVITIES_PER_PAGE;
+        const to = from + ACTIVITIES_PER_PAGE - 1;
+
+        const { data, error, count } = await supabase
           .from("user_activities")
-          .select("*")
+          .select("*", { count: "exact" }) // Add count option
           .eq("user_id", currentUser.id)
           .order("created_at", { ascending: false })
-          .limit(10);
+          .range(from, to);
 
         if (error) throw error;
 
         if (data) {
-          setRecentActivities(
-            data.map((activity) => ({
+          setRecentActivities((current) => {
+            const newActivities = data.map((activity) => ({
               id: activity.id,
               type: activity.activity_type,
               title: activity.title,
@@ -51,8 +61,19 @@ const Dashboard = () => {
               status: activity.status,
               result: activity.result,
               details: activity.details,
-            }))
-          );
+            }));
+
+            // Create a Set of existing IDs
+            const existingIds = new Set(current.map((activity) => activity.id));
+
+            // Filter out any duplicates
+            const uniqueNewActivities = newActivities.filter(
+              (activity) => !existingIds.has(activity.id)
+            );
+
+            return [...current, ...uniqueNewActivities];
+          });
+          setHasMoreActivities(count > currentPage * ACTIVITIES_PER_PAGE);
         }
       } catch (error) {
         console.error("Error fetching user activities:", error);
@@ -62,7 +83,7 @@ const Dashboard = () => {
     };
 
     fetchUserActivities();
-  }, [currentUser]);
+  }, [currentUser, currentPage]);
 
   // for real-time updates from supabase database
   useEffect(() => {
@@ -81,8 +102,8 @@ const Dashboard = () => {
         },
         (payload) => {
           // Add new activity to list
-          setRecentActivities((current) => [
-            {
+          setRecentActivities((current) => {
+            const newActivity = {
               id: payload.new.id,
               type: payload.new.activity_type,
               title: payload.new.title,
@@ -90,9 +111,21 @@ const Dashboard = () => {
               status: payload.new.status,
               result: payload.new.result,
               details: payload.new.details,
-            },
-            ...current,
-          ]);
+            };
+
+            // Check if activity with this ID already exists
+            const exists = current.some(
+              (activity) => activity.id === newActivity.id
+            );
+
+            // If activity already exists, don't add it
+            if (exists) {
+              return current;
+            }
+
+            // Add new activity at the beginning of the list
+            return [newActivity, ...current];
+          });
         }
       )
       .subscribe();
@@ -112,6 +145,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchWeatherData = async (position) => {
+      setIsWeatherLoading(true);
       try {
         const response = await fetch(
           `http://127.0.0.1:8000/api/weather?lat=${position.latitude}&lon=${position.longitude}`
@@ -140,6 +174,8 @@ const Dashboard = () => {
           forecast: "Weather data unavailable",
           windSpeed: "--m/s",
         });
+      } finally {
+        setIsWeatherLoading(false);
       }
     };
 
@@ -223,66 +259,117 @@ const Dashboard = () => {
 
           <div className="dashboard-card weather-card">
             <h2 className="card-title">Weather Information</h2>
-            <div className="weather-content">
-              <div className="weather-location">{weatherData.location}</div>
-              <div className="weather-main">
-                <div className="weather-icon">
-                  {/* Weather icons based on OpenWeather conditions */}
-                  {(() => {
-                    const forecast = weatherData.forecast.toLowerCase();
-                    if (forecast.includes("clear")) {
-                      return <Sun size={64} />;
-                    } else if (forecast.includes("cloud")) {
-                      return <Cloud size={64} />;
-                    } else if (forecast.includes("rain")) {
-                      return <CloudRain size={64} />;
-                    } else if (
-                      forecast.includes("thunder") ||
-                      forecast.includes("lightning")
-                    ) {
-                      return <CloudLightning size={64} />;
-                    } else if (forecast.includes("snow")) {
-                      return <CloudSnow size={64} />;
-                    } else if (
-                      forecast.includes("mist") ||
-                      forecast.includes("fog")
-                    ) {
-                      return <CloudFog size={64} />;
-                    } else if (forecast.includes("drizzle")) {
-                      return <CloudDrizzle size={64} />;
-                    } else {
-                      return <Cloud size={64} />;
-                    }
-                  })()}
+            {isWeatherLoading ? (
+              <div className="weather-skeleton">
+                <div className="weather-skeleton-location">
+                  <Skeleton width={180} height={24} />
                 </div>
-                <div className="weather-temp">{weatherData.temperature}</div>
-              </div>
-              <div className="weather-details">
-                <div className="weather-detail-item">
-                  <span className="detail-label">Humidity:</span>
-                  <span className="detail-value">{weatherData.humidity}</span>
+                <div className="weather-skeleton-main">
+                  <div className="weather-skeleton-icon">
+                    <Skeleton circle width={64} height={64} />
+                  </div>
+                  <div className="weather-skeleton-temp">
+                    <Skeleton width={80} height={32} />
+                  </div>
                 </div>
-                <div className="weather-detail-item">
-                  <span className="detail-label">Rainfall:</span>
-                  <span className="detail-value">{weatherData.rainfall}</span>
-                </div>
-                <div className="weather-detail-item">
-                  <span className="detail-label">Forecast:</span>
-                  <span className="detail-value">{weatherData.forecast}</span>
+                <div className="weather-skeleton-details">
+                  <div className="weather-skeleton-item">
+                    <Skeleton width={150} height={18} />
+                  </div>
+                  <div className="weather-skeleton-item">
+                    <Skeleton width={150} height={18} />
+                  </div>
+                  <div className="weather-skeleton-item">
+                    <Skeleton width={150} height={18} />
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="weather-content">
+                <div className="weather-location">{weatherData.location}</div>
+                <div className="weather-main">
+                  <div className="weather-icon">
+                    {/* Weather icons based on OpenWeather conditions */}
+                    {(() => {
+                      const forecast = weatherData.forecast.toLowerCase();
+                      if (forecast.includes("clear")) {
+                        return <Sun size={64} />;
+                      } else if (forecast.includes("cloud")) {
+                        return <Cloud size={64} />;
+                      } else if (forecast.includes("rain")) {
+                        return <CloudRain size={64} />;
+                      } else if (
+                        forecast.includes("thunder") ||
+                        forecast.includes("lightning")
+                      ) {
+                        return <CloudLightning size={64} />;
+                      } else if (forecast.includes("snow")) {
+                        return <CloudSnow size={64} />;
+                      } else if (
+                        forecast.includes("mist") ||
+                        forecast.includes("fog")
+                      ) {
+                        return <CloudFog size={64} />;
+                      } else if (forecast.includes("drizzle")) {
+                        return <CloudDrizzle size={64} />;
+                      } else {
+                        return <Cloud size={64} />;
+                      }
+                    })()}
+                  </div>
+                  <div className="weather-temp">{weatherData.temperature}</div>
+                </div>
+                <div className="weather-details">
+                  <div className="weather-detail-item">
+                    <span className="detail-label">Humidity:</span>
+                    <span className="detail-value">{weatherData.humidity}</span>
+                  </div>
+                  <div className="weather-detail-item">
+                    <span className="detail-label">Rainfall:</span>
+                    <span className="detail-value">{weatherData.rainfall}</span>
+                  </div>
+                  <div className="weather-detail-item">
+                    <span className="detail-label">Forecast:</span>
+                    <span className="detail-value">{weatherData.forecast}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="dashboard-card activity-card">
             <h2 className="card-title">Recent Activities</h2>
-            {isLoading ? (
-              <div className="loading-state">Loading activities...</div>
+            {isLoading && currentPage === 1 ? (
+              <div className="activity-skeleton">
+                {[...Array(3)].map((_, index) => (
+                  <div className="skeleton-activity-item" key={index}>
+                    <div className="skeleton-activity-header">
+                      <div className="skeleton-icon">
+                        <Skeleton circle width={24} height={24} />
+                      </div>
+                      <div className="skeleton-content">
+                        <Skeleton width={180} height={18} />
+                        <div className="skeleton-meta">
+                          <Skeleton width={120} height={14} />
+                          <Skeleton width={60} height={14} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="skeleton-result">
+                      <Skeleton width="100%" height={30} />
+                      <Skeleton
+                        width={100}
+                        height={24}
+                        style={{ marginTop: "10px" }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : recentActivities.length > 0 ? (
-              <div className="activity-list">
-                {recentActivities
-                  .slice(0, expandedActivities ? 10 : 3)
-                  .map((activity) => (
+              <>
+                <div className="activity-list">
+                  {recentActivities.map((activity) => (
                     <div key={activity.id} className="activity-item">
                       <div className="activity-icon">
                         {activity.type === "crop" && <Tractor size={18} />}
@@ -316,37 +403,178 @@ const Dashboard = () => {
                         </div>
                         {activity.result && (
                           <div className="activity-result">
-                            <p>{activity.result}</p>
-                            {activity.details && activity.type === "crop" && (
-                              <div className="activity-details-expanded">
-                                <p>
-                                  Temperature:{" "}
-                                  {activity.details.conditions.temperature}°C
-                                </p>
-                                <p>
-                                  Humidity:{" "}
-                                  {activity.details.conditions.humidity}%
-                                </p>
-                                <p>
-                                  Soil Health:{" "}
-                                  {activity.details.conditions.soil_health}
-                                </p>
-                              </div>
-                            )}
+                            <div className="result-summary">
+                              {activity.type === "fertilizer"
+                                ? parse(activity.result.split("<br/>")[0]) // Show first line as summary
+                                : parse(activity.result)}
+                            </div>
+
+                            <button
+                              className={`toggle-details-btn ${
+                                expandedActivityId === activity.id
+                                  ? "expanded"
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                setExpandedActivityId(
+                                  expandedActivityId === activity.id
+                                    ? null
+                                    : activity.id
+                                )
+                              }
+                            >
+                              {expandedActivityId === activity.id
+                                ? "Show Less ↑"
+                                : "Show Details ↓"}
+                            </button>
+
+                            {expandedActivityId === activity.id &&
+                              activity.details && (
+                                <div className="activity-details-expanded">
+                                  {activity.type === "crop" && (
+                                    <div className="details-grid">
+                                      <div className="detail-item">
+                                        <span className="detail-label-activity">
+                                          Temperature
+                                        </span>
+                                        <span className="detail-value-activity">
+                                          {
+                                            activity.details.conditions
+                                              .temperature
+                                          }
+                                          °C
+                                        </span>
+                                      </div>
+                                      <div className="detail-item">
+                                        <span className="detail-label-activity">
+                                          Humidity
+                                        </span>
+                                        <span className="detail-value-activity">
+                                          {activity.details.conditions.humidity}
+                                          %
+                                        </span>
+                                      </div>
+                                      <div className="detail-item">
+                                        <span className="detail-label-activity">
+                                          Soil Health
+                                        </span>
+                                        <span className="detail-value-activity">
+                                          {
+                                            activity.details.conditions
+                                              .soil_health
+                                          }
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {activity.type === "fertilizer" && (
+                                    <>
+                                      <div className="details-grid">
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Nitrogen (N)
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {activity.details.nitrogen} kg/ha
+                                          </span>
+                                        </div>
+                                        <div className="detail-item">
+                                          <span className="detail-label">
+                                            Phosphorus (P)
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {activity.details.phosphorus} kg/ha
+                                          </span>
+                                        </div>
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Potassium (K)
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {activity.details.potassium} kg/ha
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="recommendations">
+                                        {parse(
+                                          activity.result
+                                            .split("<br/>")
+                                            .slice(1)
+                                            .join("<br/>")
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                  {activity.type === "disease" && (
+                                    <>
+                                      <div className="disease-info">
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Disease Name
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {activity.details.disease_name}
+                                          </span>
+                                        </div>
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Confidence
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {activity.details.confidence}%
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="treatment-steps">
+                                        {parse(
+                                          activity.result
+                                            .split("<br/>")
+                                            .slice(1)
+                                            .join("<br/>")
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              )}
                           </div>
                         )}
                       </div>
                     </div>
                   ))}
-                {recentActivities.length > 3 && (
-                  <button
-                    className="show-more-button"
-                    onClick={() => setExpandedActivities(!expandedActivities)}
-                  >
-                    {expandedActivities ? "Show Less" : "Show More"}
-                  </button>
-                )}
-              </div>
+                </div>
+                <div className="pagination-controls">
+                  {hasMoreActivities ? (
+                    <button
+                      className="load-more-button"
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <span className="loading-spinner"></span>
+                          Loading more...
+                        </>
+                      ) : (
+                        "Load More Activities"
+                      )}
+                    </button>
+                  ) : (
+                    recentActivities.length > ACTIVITIES_PER_PAGE && (
+                      <button
+                        className="reset-button"
+                        onClick={() => {
+                          setCurrentPage(1);
+                          setRecentActivities([]);
+                          setHasMoreActivities(true);
+                        }}
+                      >
+                        Back to Recent Activities
+                      </button>
+                    )
+                  )}
+                </div>
+              </>
             ) : (
               <div className="empty-state">
                 <AlertCircle size={24} />
