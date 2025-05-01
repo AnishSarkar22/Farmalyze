@@ -12,7 +12,7 @@ import torch
 from datetime import datetime
 from gemini import get_alternative_crops
 from torchvision import transforms
-# from supabase import create_client, Client
+from supabase import create_client, Client
 from utils.fertilizer import fertilizer_dic
 from utils.disease import disease_dic
 from transformers import AutoImageProcessor, AutoModelForImageClassification
@@ -195,9 +195,19 @@ def health_check():
 @app.route('/api/auth/session', methods=['GET', 'POST', 'DELETE'])
 def handle_session():
     if request.method == 'GET':
-        # Get session from secure cookie
-        session = request.cookies.get('sb-auth-token')
-        return jsonify({'session': json.loads(session) if session else None})
+        try:
+            # Get session from secure cookie
+            session = request.cookies.get('sb-auth-token')
+            if not session:
+                return jsonify({'session': None}), 200
+            
+            parsed_session = json.loads(session)
+            return jsonify({'session': parsed_session}), 200
+        except json.JSONDecodeError:
+            return jsonify({
+                'error': 'Invalid session format',
+                'session': None
+            }), 400
         
     elif request.method == 'POST':
         # Store session in secure cookie
@@ -300,6 +310,7 @@ def get_weather_data():
             'error': str(e)
         }), 500
 
+
 # ===============================================================================================
 # DISEASE PREDICTION
 
@@ -397,7 +408,7 @@ def api_crop_prediction():
             'error': str(e)
         }), 400
 
-# render fertilizer recommendation result page
+# render fertilizer suggestion result page
 @app.route('/api/fertilizer-predict', methods=['POST'])
 # @login_required
 def api_fertilizer_prediction():

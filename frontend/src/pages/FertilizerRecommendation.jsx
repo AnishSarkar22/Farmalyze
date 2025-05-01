@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AlertCircle, Droplets, Check } from "lucide-react";
-import parse from 'html-react-parser';
+import parse from "html-react-parser";
+import { supabase } from "../config/supabase.js";
+
 import "../styles/Form.css";
 
 const FertilizerRecommendation = () => {
@@ -14,6 +16,7 @@ const FertilizerRecommendation = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [session, setSession] = useState(null);
 
   const cropTypes = [
     "rice",
@@ -52,11 +55,22 @@ const FertilizerRecommendation = () => {
   //       .replace(/\s*<i>/g, '')
   //       .replace(/<\/i>/g, '')
   //     );
-  
+
   //   return { title: title.trim(), suggestions };
   // };
 
-  
+  useEffect(() => {
+    // Fetch session when component mounts
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+
+    getSession();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -81,6 +95,18 @@ const FertilizerRecommendation = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Store activity in Supabase
+        await supabase.from("user_activities").insert({
+          user_id: session.user.id,
+          activity_type: "fertilizer",
+          title: `Fertilizer Analysis for ${formData.cropname}`,
+          result: data.recommendation,
+          details: {
+            nitrogen: formData.nitrogen,
+            phosphorus: formData.phosphorus,
+            potassium: formData.potassium,
+          },
+        });
         setResult(data);
       } else {
         setError(data.error || "Failed to get recommendation");
@@ -96,7 +122,7 @@ const FertilizerRecommendation = () => {
     <div className="form-page">
       <div className="container">
         <div className="form-header">
-          <h1 className="form-title">Fertilizer Recommendation</h1>
+          <h1 className="form-title">Fertilizer Suggestion</h1>
           <p className="form-subtitle">
             Get informed advice based on fertilizer based on soil
           </p>
@@ -205,24 +231,30 @@ const FertilizerRecommendation = () => {
             <div className="result-card">
               <div className="result-header">
                 <Droplets size={32} className="result-icon" />
-                <h2 className="result-title">
-                  Fertilizer Recommendation Results
-                </h2>
+                <h2 className="result-title">Fertilizer Suggestion Results</h2>
               </div>
               <div className="result-main">
                 <div className="recommendation-content">
                   {parse(result.recommendation, {
                     replace: (domNode) => {
-                      if (domNode.name === 'br') {
+                      if (domNode.name === "br") {
                         return <br />;
                       }
-                      if (domNode.name === 'b') {
-                        return <strong className="highlight-text">{domNode.children[0].data}</strong>;
+                      if (domNode.name === "b") {
+                        return (
+                          <strong className="highlight-text">
+                            {domNode.children[0].data}
+                          </strong>
+                        );
                       }
-                      if (domNode.name === 'i') {
-                        return <em className="emphasis-text">{domNode.children[0].data}</em>;
+                      if (domNode.name === "i") {
+                        return (
+                          <em className="emphasis-text">
+                            {domNode.children[0].data}
+                          </em>
+                        );
                       }
-                    }
+                    },
                   })}
                 </div>
               </div>

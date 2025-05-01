@@ -10,6 +10,7 @@ import {
   Droplets,
   Microscope,
   LayoutDashboard,
+  ChevronDown
 } from "lucide-react";
 import "../styles/Navbar.css";
 import FarmalyzeLogo from "../assets/farmalyze.svg";
@@ -147,9 +148,9 @@ const Navbar = () => {
               <Link to="/login" className="btn btn-outline">
                 Login
               </Link>
-              <Link to="/admin-login" className="btn btn-primary ml-2">
+              {/* <Link to="/admin-login" className="btn btn-primary ml-2">
                 Admin Login
-              </Link>
+              </Link> */}
             </>
           )}
         </div>
@@ -220,13 +221,13 @@ const Navbar = () => {
             <Link to="/login" className="mobile-nav-link" onClick={closeMenu}>
               Login
             </Link>
-            <Link
+            {/* <Link
               to="/admin-login"
               className="mobile-nav-link admin-link"
               onClick={closeMenu}
             >
               Admin Login
-            </Link>
+            </Link> */}
           </div>
         )}
       </div>

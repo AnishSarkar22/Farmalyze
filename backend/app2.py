@@ -314,7 +314,7 @@ def crop_prediction():
 
             return render_template('try_again.html', title=title)
 
-# render fertilizer recommendation result page
+# render fertilizer suggestion result page
 @app.route('/fertilizer-predict', methods=['POST'])
 def fert_recommend():
     title = '- Fertilizer Suggestion'

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AlertCircle, Tractor, Check } from "lucide-react";
 import "../styles/Form.css";
 import { state_arr, s_a } from "../utils/cities.js";
+import { supabase } from "../config/supabase.js";
 
 const CropRecommendation = () => {
   const [formData, setFormData] = useState({
@@ -13,10 +14,10 @@ const CropRecommendation = () => {
     state: "",
     city: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     // Create state dropdown when component mounts
@@ -32,6 +33,18 @@ const CropRecommendation = () => {
         );
       }
     }
+  }, []);
+
+  useEffect(() => {
+    // Fetch session when component mounts
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+
+    getSession();
   }, []);
 
   const handleChange = (e) => {
@@ -66,6 +79,11 @@ const CropRecommendation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!session) {
+      setError("Please login to continue");
+      return;
+    }
+
     // Validate form inputs
     if (
       !formData.nitrogen ||
@@ -88,6 +106,7 @@ const CropRecommendation = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
           nitrogen: formData.nitrogen,
@@ -102,6 +121,17 @@ const CropRecommendation = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Store activity in Supabase
+        await supabase.from("user_activities").insert({
+          user_id: session.user.id,
+          activity_type: "crop",
+          title: `Crop Recommendation for ${formData.city}`,
+          result: `Recommended crop: ${data.prediction}`,
+          details: {
+            conditions: data.conditions,
+            alternatives: data.alternatives,
+          },
+        });
         setResult({
           recommendedCrop: {
             name: data.prediction,

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../config/supabase.js";
 import {
   Tractor,
   Droplets,
@@ -20,31 +21,85 @@ import "../styles/Dashboard.css";
 const Dashboard = () => {
   const { currentUser } = useAuth();
   const [userName, setUserName] = useState("User");
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Sample data for demonstration
-  const recentActivities = [
-    {
-      id: 1,
-      type: "crop",
-      title: "Rice Recommendation",
-      date: "2025-06-02",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      type: "fertilizer",
-      title: "NPK Analysis",
-      date: "2025-06-01",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      type: "disease",
-      title: "Leaf Spot Detection",
-      date: "2025-05-28",
-      status: "Completed",
-    },
-  ];
+  useEffect(() => {
+    const fetchUserActivities = async () => {
+      if (!currentUser) return;
+
+      try {
+        setIsLoading(true);
+
+        const { data, error } = await supabase
+          .from("user_activities")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        if (data) {
+          setRecentActivities(
+            data.map((activity) => ({
+              id: activity.id,
+              type: activity.activity_type,
+              title: activity.title,
+              date: activity.created_at,
+              status: activity.status,
+              result: activity.result,
+              details: activity.details,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching user activities:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserActivities();
+  }, [currentUser]);
+
+  // for real-time updates from supabase database 
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Subscribe to changes
+    const subscription = supabase
+      .channel("user_activities_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_activities",
+          filter: `user_id=eq.${currentUser.id}`,
+        },
+        (payload) => {
+          // Add new activity to list
+          setRecentActivities((current) => [
+            {
+              id: payload.new.id,
+              type: payload.new.activity_type,
+              title: payload.new.title,
+              date: payload.new.created_at,
+              status: payload.new.status,
+              result: payload.new.result,
+              details: payload.new.details,
+            },
+            ...current,
+          ]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [currentUser]);
 
   const [weatherData, setWeatherData] = useState({
     location: "Loading...",
@@ -220,7 +275,9 @@ const Dashboard = () => {
 
           <div className="dashboard-card activity-card">
             <h2 className="card-title">Recent Activities</h2>
-            {recentActivities.length > 0 ? (
+            {isLoading ? (
+              <div className="loading-state">Loading activities...</div>
+            ) : recentActivities.length > 0 ? (
               <div className="activity-list">
                 {recentActivities.map((activity) => (
                   <div key={activity.id} className="activity-item">
@@ -232,11 +289,42 @@ const Dashboard = () => {
                     <div className="activity-details">
                       <div className="activity-title">{activity.title}</div>
                       <div className="activity-meta">
-                        <span className="activity-date">{activity.date}</span>
-                        <span className="activity-status">
+                        <span className="activity-date">
+                          {new Date(activity.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        <span
+                          className={`activity-status status-${activity.status.toLowerCase()}`}
+                        >
                           {activity.status}
                         </span>
                       </div>
+                      {activity.result && (
+                        <div className="activity-result">
+                          <p>{activity.result}</p>
+                          {activity.details && activity.type === "crop" && (
+                            <div className="activity-details-expanded">
+                              <p>
+                                Temperature:{" "}
+                                {activity.details.conditions.temperature}°C
+                              </p>
+                              <p>
+                                Humidity: {activity.details.conditions.humidity}
+                                %
+                              </p>
+                              <p>
+                                Soil Health:{" "}
+                                {activity.details.conditions.soil_health}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

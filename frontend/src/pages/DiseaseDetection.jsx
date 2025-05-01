@@ -1,105 +1,129 @@
-import React, { useState, useRef } from 'react';
-import { AlertCircle, Upload, Microscope, Check, X } from 'lucide-react';
-import '../styles/Form.css';
-import '../styles/DiseaseDetection.css';
+import React, { useState, useRef, useEffect } from "react";
+import { AlertCircle, Upload, Microscope, Check, X } from "lucide-react";
+import "../styles/Form.css";
+import "../styles/DiseaseDetection.css";
+import { supabase } from "../config/supabase.js";
 
 const DiseaseDetection = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-  
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    // Fetch session when component mounts
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+
+    getSession();
+  }, []);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Check file type
-    if (!file.type.includes('image/')) {
-      setError('Please upload an image file');
+    if (!file.type.includes("image/")) {
+      setError("Please upload an image file");
       return;
     }
-    
+
     // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
+      setError("Image size should be less than 5MB");
       return;
     }
-    
+
     setSelectedImage(file);
     setPreviewUrl(URL.createObjectURL(file));
-    setError('');
+    setError("");
   };
-  
+
   const handleDrop = (e) => {
     e.preventDefault();
-    
+
     const file = e.dataTransfer.files[0];
     if (!file) return;
-    
+
     // Check file type
-    if (!file.type.includes('image/')) {
-      setError('Please upload an image file');
+    if (!file.type.includes("image/")) {
+      setError("Please upload an image file");
       return;
     }
-    
+
     // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
+      setError("Image size should be less than 5MB");
       return;
     }
-    
+
     setSelectedImage(file);
     setPreviewUrl(URL.createObjectURL(file));
-    setError('');
+    setError("");
   };
-  
+
   const handleDragOver = (e) => {
     e.preventDefault();
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedImage) {
-      setError('Please upload an image');
+      setError("Please upload an image");
       return;
     }
-    
+
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     // Create form data
     const formData = new FormData();
-    formData.append('file', selectedImage);
-    
+    formData.append("file", selectedImage);
+
     try {
-      const response = await fetch('http://localhost:8000/api/disease-predict', {
-        method: 'POST',
-        body: formData
-      });
-      
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/disease-predict",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong');
+        throw new Error(data.error || "Something went wrong");
       }
-      
+
       if (data.success) {
+        // Store activity in Supabase
+        await supabase.from("user_activities").insert({
+          user_id: session.user.id,
+          activity_type: "disease",
+          title: `Disease Detection Analysis`,
+          result: data.prediction,
+          details: {
+            disease_info: data.disease_info,
+          },
+        });
+
         setResult({
           diseaseName: data.prediction,
           // confidence: 95, // Add confidence if available from API
           description: data.disease_info,
-          symptoms: [
-            'View detailed symptoms on disease info section',
-          ],
-          treatments: [
-            'View treatment options on disease info section',
-          ],
+          symptoms: ["View detailed symptoms on disease info section"],
+          treatments: ["View treatment options on disease info section"],
           preventiveMeasures: [
-            'View prevention measures on disease info section',
-          ]
+            "View prevention measures on disease info section",
+          ],
         });
       }
     } catch (err) {
@@ -108,14 +132,14 @@ const DiseaseDetection = () => {
       setLoading(false);
     }
   };
-  
+
   const resetForm = () => {
     setSelectedImage(null);
     setPreviewUrl(null);
     setResult(null);
-    setError('');
+    setError("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -128,27 +152,31 @@ const DiseaseDetection = () => {
             Upload an image of your plant to identify potential diseases
           </p>
         </div>
-        
+
         {error && (
           <div className="form-error">
             <AlertCircle size={18} />
             <span>{error}</span>
           </div>
         )}
-        
+
         <div className="form-content-wrapper">
           {!result ? (
             <form onSubmit={handleSubmit} className="form-card">
-              <div 
-                className={`image-upload-area ${previewUrl ? 'has-image' : ''}`}
+              <div
+                className={`image-upload-area ${previewUrl ? "has-image" : ""}`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
                 {previewUrl ? (
                   <div className="image-preview-container">
-                    <img src={previewUrl} alt="Preview" className="image-preview" />
-                    <button 
-                      type="button" 
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="image-preview"
+                    />
+                    <button
+                      type="button"
                       className="remove-image-btn"
                       onClick={resetForm}
                     >
@@ -160,10 +188,12 @@ const DiseaseDetection = () => {
                     <Upload size={48} className="upload-icon" />
                     <h3>Drag & Drop or Click to Upload</h3>
                     <p>Upload a clear image of the affected plant part</p>
-                    <p className="file-requirements">Supported formats: JPG, PNG, JPEG (Max size: 5MB)</p>
+                    <p className="file-requirements">
+                      Supported formats: JPG, PNG, JPEG (Max size: 5MB)
+                    </p>
                   </div>
                 )}
-                
+
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -172,7 +202,7 @@ const DiseaseDetection = () => {
                   onChange={handleImageChange}
                 />
               </div>
-              
+
               <div className="form-instructions">
                 <h3>Tips for better results:</h3>
                 <ul className="instructions-list">
@@ -182,14 +212,14 @@ const DiseaseDetection = () => {
                   <li>Avoid shadows and reflections</li>
                 </ul>
               </div>
-              
+
               <div className="form-actions">
-                <button 
-                  type="submit" 
-                  className="btn btn-primary" 
+                <button
+                  type="submit"
+                  className="btn btn-primary"
                   disabled={loading || !selectedImage}
                 >
-                  {loading ? 'Analyzing...' : 'Detect Disease'}
+                  {loading ? "Analyzing..." : "Detect Disease"}
                 </button>
               </div>
             </form>
@@ -199,12 +229,16 @@ const DiseaseDetection = () => {
                 <Microscope size={32} className="result-icon" />
                 <h2 className="result-title">Disease Detection Results</h2>
               </div>
-              
+
               <div className="result-main">
                 <div className="result-image-container">
-                  <img src={previewUrl} alt="Analyzed plant" className="result-image" />
+                  <img
+                    src={previewUrl}
+                    alt="Analyzed plant"
+                    className="result-image"
+                  />
                 </div>
-                
+
                 <div className="disease-info">
                   <div className="disease-header">
                     <h3 className="disease-name">{result.diseaseName}</h3>
@@ -219,9 +253,9 @@ const DiseaseDetection = () => {
                       <span>{result.confidence}% Confidence</span>
                     </div> */}
                   </div>
-                  
+
                   <p className="disease-description">{result.description}</p>
-                  
+
                   {/* <div className="disease-details">
                     <div className="detail-section">
                       <h4>Symptoms</h4>
@@ -254,10 +288,7 @@ const DiseaseDetection = () => {
               </div>
 
               <div className="result-actions">
-                <button 
-                  className="btn btn-outline" 
-                  onClick={resetForm}
-                >
+                <button className="btn btn-outline" onClick={resetForm}>
                   Analyze Another Image
                 </button>
               </div>
