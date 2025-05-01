@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [userName, setUserName] = useState("User");
   const [recentActivities, setRecentActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedActivities, setExpandedActivities] = useState(false);
 
   useEffect(() => {
     const fetchUserActivities = async () => {
@@ -63,7 +64,7 @@ const Dashboard = () => {
     fetchUserActivities();
   }, [currentUser]);
 
-  // for real-time updates from supabase database 
+  // for real-time updates from supabase database
   useEffect(() => {
     if (!currentUser) return;
 
@@ -279,55 +280,72 @@ const Dashboard = () => {
               <div className="loading-state">Loading activities...</div>
             ) : recentActivities.length > 0 ? (
               <div className="activity-list">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="activity-item">
-                    <div className="activity-icon">
-                      {activity.type === "crop" && <Tractor size={18} />}
-                      {activity.type === "fertilizer" && <Droplets size={18} />}
-                      {activity.type === "disease" && <Microscope size={18} />}
-                    </div>
-                    <div className="activity-details">
-                      <div className="activity-title">{activity.title}</div>
-                      <div className="activity-meta">
-                        <span className="activity-date">
-                          {new Date(activity.date).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <span
-                          className={`activity-status status-${activity.status.toLowerCase()}`}
-                        >
-                          {activity.status}
-                        </span>
+                {recentActivities
+                  .slice(0, expandedActivities ? 10 : 3)
+                  .map((activity) => (
+                    <div key={activity.id} className="activity-item">
+                      <div className="activity-icon">
+                        {activity.type === "crop" && <Tractor size={18} />}
+                        {activity.type === "fertilizer" && (
+                          <Droplets size={18} />
+                        )}
+                        {activity.type === "disease" && (
+                          <Microscope size={18} />
+                        )}
                       </div>
-                      {activity.result && (
-                        <div className="activity-result">
-                          <p>{activity.result}</p>
-                          {activity.details && activity.type === "crop" && (
-                            <div className="activity-details-expanded">
-                              <p>
-                                Temperature:{" "}
-                                {activity.details.conditions.temperature}°C
-                              </p>
-                              <p>
-                                Humidity: {activity.details.conditions.humidity}
-                                %
-                              </p>
-                              <p>
-                                Soil Health:{" "}
-                                {activity.details.conditions.soil_health}
-                              </p>
-                            </div>
-                          )}
+                      <div className="activity-details">
+                        <div className="activity-title">{activity.title}</div>
+                        <div className="activity-meta">
+                          <span className="activity-date">
+                            {new Date(activity.date).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </span>
+                          <span
+                            className={`activity-status status-${activity.status.toLowerCase()}`}
+                          >
+                            {activity.status}
+                          </span>
                         </div>
-                      )}
+                        {activity.result && (
+                          <div className="activity-result">
+                            <p>{activity.result}</p>
+                            {activity.details && activity.type === "crop" && (
+                              <div className="activity-details-expanded">
+                                <p>
+                                  Temperature:{" "}
+                                  {activity.details.conditions.temperature}°C
+                                </p>
+                                <p>
+                                  Humidity:{" "}
+                                  {activity.details.conditions.humidity}%
+                                </p>
+                                <p>
+                                  Soil Health:{" "}
+                                  {activity.details.conditions.soil_health}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                {recentActivities.length > 3 && (
+                  <button
+                    className="show-more-button"
+                    onClick={() => setExpandedActivities(!expandedActivities)}
+                  >
+                    {expandedActivities ? "Show Less" : "Show More"}
+                  </button>
+                )}
               </div>
             ) : (
               <div className="empty-state">

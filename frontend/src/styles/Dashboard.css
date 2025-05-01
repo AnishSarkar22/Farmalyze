@@ -61,6 +61,23 @@
   border-bottom: 1px solid var(--border);
 }
 
+.show-more-button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.show-more-button:hover {
+  background-color: #e4e4e4;
+}
+
 /* Quick Actions */
 .quick-actions {
   grid-column: span 2;
