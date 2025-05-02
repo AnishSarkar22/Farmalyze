@@ -564,51 +564,63 @@
     border-radius: 4px;
   }
 
-  /* Ensure activity items display properly */
   .activity-item {
     padding: 0.75rem 0;
     border-bottom: 1px solid #eee;
   }
 
-  /* Remove bottom border from last item */
   .activity-item:last-child {
     border-bottom: none;
   }
 
-  /* Make sure pagination controls stay at the bottom */
-  .pagination-controls {
-    margin-top: auto;
-    padding: 10px 0;
+  .container {
+    padding: 0 var(--spacing-3);
   }
 
-  .container {
-    padding: 0 10px;
-    width: 100%;
-    box-sizing: border-box;
+  .quick-actions {
+    grid-column: 1;
   }
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  .quick-actions {
-    grid-column: span 1;
+  .tips-list {
+    max-height: 250px;
   }
 
   .quick-actions-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-2);
+    gap: 1rem;
+  }
+
+  .quick-action-item {
+    padding: 0.75rem;
+  }
+
+  .quick-action-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-action-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .quick-action-item span {
+    font-size: 0.85rem;
   }
 
   .weather-details {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 
-  /* Fixed mobile styles for activity card */
-  .dashboard-card.activity-card {
-    padding: 0.75rem;
-    height: 400px !important;
-    overflow: hidden;
+  .dashboard-card.activity-card,
+  .dashboard-card.tips-card {
+    height: auto !important;
+    max-height: 450px;
   }
 
   .dashboard-container {
@@ -620,7 +632,6 @@
     margin-bottom: 0.5rem;
   }
 
-  /* Fix activity details to be fully visible */
   .activity-details {
     width: 100%;
   }
@@ -638,25 +649,39 @@
     margin-bottom: -30px;
   }
 
-  /* Improve activity item layout on mobile */
   .activity-item {
     padding: 0.5rem 0;
     margin: 0;
   }
 
-  /* Better layout for activity meta on mobile */
   .activity-meta {
-    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
   }
+  
 
-  /* Make status badges more visible */
   .activity-status {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 6px;
     border-radius: 4px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    text-align: center;
+    min-width: 70px;
+    margin-left: auto;
+  }
+  
+  .status-completed {
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
   }
 
-  /* Fix activity result display */
   .activity-result {
     margin-top: 0.5rem;
     padding: 0.75rem;
@@ -671,7 +696,6 @@
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
 
-  /* Adjust button for better touch targets */
   .toggle-details-btn {
     width: 100%;
     padding: 12px;
@@ -680,18 +704,10 @@
     justify-content: center;
   }
 
-  /* Improve details grid on small screens */
   .details-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Make sure pagination controls are fully visible */
-  .pagination-controls {
-    margin-top: 1rem;
-    padding-bottom: 0.5rem;
-  }
-
-  /* Ensure other dashboard cards look good */
   .dashboard-card {
     height: auto;
     overflow: visible;
@@ -702,6 +718,38 @@
     word-break: break-word;
     width: 100%;
   }
+
+  .pagination-controls {
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .quick-action-item {
+    padding: 0.5rem;
+  }
+
+  .quick-action-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .quick-action-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .quick-action-item span {
+    font-size: 0.75rem;
+  }
+
+  
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
