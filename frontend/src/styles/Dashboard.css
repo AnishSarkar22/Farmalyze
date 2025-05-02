@@ -245,28 +245,36 @@
   padding-right: 10px;
   margin-bottom: -20px;
 }
-/* Custom scrollbar styling */
-.activity-list::-webkit-scrollbar {
-  width: 8px;
+
+/* Custom scrollbar styling for both activity-list and tips-list */
+.activity-list::-webkit-scrollbar,
+.tips-list::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
 }
 
-.activity-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.activity-list::-webkit-scrollbar-track,
+.tips-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.activity-list::-webkit-scrollbar-thumb,
+.tips-list::-webkit-scrollbar-thumb {
+  background-color: rgba(209, 209, 209, 0.5);
   border-radius: 4px;
 }
 
-.activity-list::-webkit-scrollbar-thumb {
-  background: #888;
+.activity-list:hover::-webkit-scrollbar-thumb,
+.tips-list:hover::-webkit-scrollbar-thumb {
+  background-color: #d1d1d1;
   border-radius: 4px;
 }
 
-.activity-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
 /* For Firefox */
-.activity-list {
+.activity-list,
+.tips-list {
   scrollbar-width: thin;
-  scrollbar-color: #888 #f1f1f1;
+  scrollbar-color: #d1d1d1 transparent;
 }
 .activity-item {
   padding: 1rem;
@@ -295,14 +303,6 @@
 .activity-details {
   flex: 1;
 }
-
-/* .activity-details-expanded {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background: #f5f5f5;
-  border-radius: 4px;
-  font-size: 0.85rem;
-} */
 
 .activity-title {
   font-weight: 500;
@@ -411,32 +411,58 @@
 }
 
 /* Tips Card */
+.tips-card {
+  padding: 1.25rem;
+  height: 400px !important;
+  overflow: hidden;
+}
+
 .tips-list {
+  flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: #d1d1d1 transparent; /* For Firefox */
+}
+
+.tips-skeleton {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: 20px;
+}
+
+.skeleton-tip-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
 }
 
 .tip-item {
-  padding-bottom: var(--spacing-2);
-  border-bottom: 1px solid var(--border);
+  padding: 0.75rem;
+  border-bottom: 1px solid #e8e8e8;
 }
 
 .tip-item:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
 
 .tip-title {
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: var(--spacing-1);
-  color: var(--primary);
-  font-size: 1.05rem;
+  color: #2e7d32;
+  margin: 0 0 0.5rem 0;
 }
 
-.tip-content {
-  color: var(--text-secondary);
-  line-height: 1.6;
+.tip-content a {
+  color: #2e7d32;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tip-content a:hover {
+  color: #1b5e20;
+  text-decoration: underline;
 }
 
 /* Empty States */
@@ -493,46 +519,48 @@
 
 /* Weather skeleton styles */
 .weather-skeleton {
-  padding: 1rem;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  height: 100%;
+  max-height: 225px; /* Match height of actual weather content */
 }
 
 .weather-skeleton-location {
   display: flex;
-  justify-content: center;
-  margin-bottom: 0.5rem;
+  justify-content: flex-start;
+  margin-bottom: 0.25rem;
 }
 
 .weather-skeleton-main {
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .weather-skeleton-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
 }
 
 .weather-skeleton-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   /* Custom scrollbar styling for mobile */
   .activity-list::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
+    background: transparent;
   }
 
   .activity-list::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(209, 209, 209, 0.5);
     border-radius: 4px;
   }
 

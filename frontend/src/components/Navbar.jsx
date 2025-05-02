@@ -167,12 +167,12 @@ const Navbar = () => {
       <div className={`mobile-nav ${isOpen ? "open" : ""}`}>
         {currentUser ? (
           <div className="mobile-nav-links">
-            {isAdmin ? (
+            {/* {isAdmin ? (
               <Link to="/admin" className="mobile-nav-link" onClick={closeMenu}>
                 <LayoutDashboard size={20} />
                 <span>Admin</span>
               </Link>
-            ) : (
+            ) : ( */}
               <>
                 <Link
                   to="/dashboard"
@@ -207,7 +207,7 @@ const Navbar = () => {
                   <span>Disease</span>
                 </Link>
               </>
-            )}
+            {/* )} */}
             <button
               onClick={handleLogout}
               className="mobile-nav-link logout-mobile"

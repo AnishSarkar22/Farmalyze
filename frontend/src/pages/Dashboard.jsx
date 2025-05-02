@@ -29,7 +29,17 @@ const Dashboard = () => {
   const [expandedActivityId, setExpandedActivityId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [isWeatherLoading, setIsWeatherLoading] = useState(true);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [farmingTips, setFarmingTips] = useState([]);
+  const [isTipsLoading, setIsTipsLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [loadingStates, setLoadingStates] = useState({
+    weather: true,
+    activities: true,
+    tips: true,
+  });
   const ACTIVITIES_PER_PAGE = 10;
 
   useEffect(() => {
@@ -44,7 +54,7 @@ const Dashboard = () => {
 
         const { data, error, count } = await supabase
           .from("user_activities")
-          .select("*", { count: "exact" }) // Add count option
+          .select("*", { count: "exact" })
           .eq("user_id", currentUser.id)
           .order("created_at", { ascending: false })
           .range(from, to);
@@ -79,6 +89,15 @@ const Dashboard = () => {
         console.error("Error fetching user activities:", error);
       } finally {
         setIsLoading(false);
+        // Update unified loading state
+        setLoadingStates((prev) => {
+          const newState = { ...prev, activities: false };
+          // Check if all components are loaded
+          if (!newState.weather && !newState.activities) {
+            setIsDashboardLoading(false);
+          }
+          return newState;
+        });
       }
     };
 
@@ -135,6 +154,62 @@ const Dashboard = () => {
     };
   }, [currentUser]);
 
+  // for fetching farming tips
+  useEffect(() => {
+    const fetchFarmingTips = async () => {
+      setIsTipsLoading(true);
+      try {
+        // Fetch tips from Supabase
+        const { data, error } = await supabase
+          .from("farming_tips")
+          .select("*")
+          .order("id", { ascending: true });
+
+        if (error) throw error;
+
+        if (data) {
+          setFarmingTips(data);
+        }
+      } catch (error) {
+        console.error("Error fetching farming tips:", error);
+        // Fallback tips if fetching fails
+        setFarmingTips([
+          {
+            id: 1,
+            title: "Soil Health Management",
+            content:
+              "Regularly test your soil to maintain optimal pH levels between 6.0-7.0 for most crops.",
+          },
+          {
+            id: 2,
+            title: "Water Conservation",
+            content:
+              "Use drip irrigation to reduce water usage by up to 60% compared to traditional methods.",
+          },
+          {
+            id: 3,
+            title: "Seasonal Planning",
+            content:
+              "Plan your crop rotation to maximize soil nutrients and minimize pest pressure.",
+          },
+        ]);
+      } finally {
+        setIsTipsLoading(false);
+        // Update unified loading state
+        setLoadingStates((prev) => {
+          const newState = { ...prev, tips: false };
+          // Check if all components are loaded
+          if (!newState.weather && !newState.activities && !newState.tips) {
+            setIsDashboardLoading(false);
+          }
+          return newState;
+        });
+      }
+    };
+
+    fetchFarmingTips();
+  }, []);
+
   const [weatherData, setWeatherData] = useState({
     location: "Loading...",
     temperature: "--°C",
@@ -176,6 +251,15 @@ const Dashboard = () => {
         });
       } finally {
         setIsWeatherLoading(false);
+        // Update unified loading state
+        setLoadingStates((prev) => {
+          const newState = { ...prev, weather: false };
+          // Check if all components are loaded
+          if (!newState.weather && !newState.activities) {
+            setIsDashboardLoading(false);
+          }
+          return newState;
+        });
       }
     };
 
@@ -257,9 +341,10 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Weather card */}
           <div className="dashboard-card weather-card">
             <h2 className="card-title">Weather Information</h2>
-            {isWeatherLoading ? (
+            {isDashboardLoading ? (
               <div className="weather-skeleton">
                 <div className="weather-skeleton-location">
                   <Skeleton width={180} height={24} />
@@ -337,9 +422,10 @@ const Dashboard = () => {
             )}
           </div>
 
+          {/* Activities card */}
           <div className="dashboard-card activity-card">
             <h2 className="card-title">Recent Activities</h2>
-            {isLoading && currentPage === 1 ? (
+            {isDashboardLoading ? (
               <div className="activity-skeleton">
                 {[...Array(3)].map((_, index) => (
                   <div className="skeleton-activity-item" key={index}>
@@ -585,31 +671,34 @@ const Dashboard = () => {
 
           <div className="dashboard-card tips-card">
             <h2 className="card-title">Farming Tips</h2>
-            <div className="tips-list">
-              <div className="tip-item">
-                <h3 className="tip-title">Soil Health Management</h3>
-                <p className="tip-content">
-                  Regularly test your soil to maintain optimal pH levels between
-                  6.0-7.0 for most crops.
-                </p>
+            {isDashboardLoading || isTipsLoading ? (
+              <div className="tips-skeleton">
+                {[...Array(3)].map((_, index) => (
+                  <div className="skeleton-tip-item" key={index}>
+                    <Skeleton width={180} height={24} />
+                    <Skeleton
+                      width="100%"
+                      height={48}
+                      style={{ marginTop: "8px" }}
+                    />
+                  </div>
+                ))}
               </div>
-
-              <div className="tip-item">
-                <h3 className="tip-title">Water Conservation</h3>
-                <p className="tip-content">
-                  Use drip irrigation to reduce water usage by up to 60%
-                  compared to traditional methods.
-                </p>
+            ) : farmingTips.length > 0 ? (
+              <div className="tips-list">
+                {farmingTips.map((tip) => (
+                  <div className="tip-item" key={tip.id}>
+                    <h3 className="tip-title">{tip.title}</h3>
+                    <p className="tip-content">{parse(tip.content)}</p>
+                  </div>
+                ))}
               </div>
-
-              <div className="tip-item">
-                <h3 className="tip-title">Seasonal Planning</h3>
-                <p className="tip-content">
-                  Plan your crop rotation to maximize soil nutrients and
-                  minimize pest pressure.
-                </p>
+            ) : (
+              <div className="empty-state">
+                <AlertCircle size={24} />
+                <p>No farming tips available</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
