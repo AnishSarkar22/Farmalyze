@@ -167,6 +167,13 @@ def health_check():
         'timestamp': datetime.now().isoformat(),
         'uptime': 'active'
     })
+    
+@app.route("/api/version")
+def get_version():
+    import sys
+    return jsonify({
+        'python_version': sys.version
+    })
 
 # test supabase connection
 # @app.route("/api/test-connection")
