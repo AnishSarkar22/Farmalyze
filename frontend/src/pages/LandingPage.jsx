@@ -167,29 +167,41 @@ const LandingPage = () => {
         <div className="container">
           <h2 className="section-title">How It Works</h2>
           <div className="steps-container">
-            <div className="step">
-              <div className="step-number">1</div>
-              <h3 className="step-title">Create an Account</h3>
-              <p className="step-desc">Sign up and create your profile to get started.</p>
-            </div>
-            
-            <div className="step">
-              <div className="step-number">2</div>
-              <h3 className="step-title">Enter Your Data</h3>
-              <p className="step-desc">Input soil parameters, location, and other details.</p>
-            </div>
-            
-            <div className="step">
-              <div className="step-number">3</div>
-              <h3 className="step-title">Get Recommendations</h3>
-              <p className="step-desc">Receive instant, actionable insights and recommendations.</p>
-            </div>
-            
-            <div className="step">
-              <div className="step-number">4</div>
-              <h3 className="step-title">Implement & Improve</h3>
-              <p className="step-desc">Apply recommendations and track your results over time.</p>
-            </div>
+            {[
+              {
+                number: 1,
+                title: "Create an Account",
+                desc: "Sign up and create your profile to get started."
+              },
+              {
+                number: 2,
+                title: "Enter Your Data",
+                desc: "Input soil parameters, location, and other details."
+              },
+              {
+                number: 3,
+                title: "Get Recommendations",
+                desc: "Receive instant, actionable insights and recommendations."
+              },
+              {
+                number: 4,
+                title: "Implement & Improve",
+                desc: "Apply recommendations and track your results over time."
+              }
+            ].map((step, index, array) => (
+              <div key={step.number} className="step-wrapper">
+                <div className="step">
+                  <div className="step-number">{step.number}</div>
+                  <h3 className="step-title">{step.title}</h3>
+                  <p className="step-desc">{step.desc}</p>
+                </div>
+                {index < array.length - 1 && (
+                  <div className="step-connector">
+                    <div className="connector-line"></div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -204,7 +216,7 @@ const LandingPage = () => {
             </div>
           
             <p className="footer-tagline">Empowering farmers with technology</p>
-            <p className="copyright">© 2025 Farmalyze. All rights reserved.</p>
+            <p className="copyright">©2025 Farmalyze. All rights reserved.</p>
           </div>
         </div>
       </footer>

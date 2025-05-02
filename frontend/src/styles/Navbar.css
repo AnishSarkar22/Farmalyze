@@ -105,26 +105,29 @@ body.menu-open {
 
 .mobile-nav {
   position: fixed;
-  top: 70px; /* Adjust based on your navbar height */
+  top: 70px;
   left: 0;
   right: 0;
-  background-color: rgba(248, 249, 248, 0.95); /* Match the navbar background */
+  background-color: rgba(248, 249, 248, 0.95);
   -webkit-backdrop-filter: saturate(180%) blur(20px); /* Same blur effect */
   backdrop-filter: saturate(180%) blur(20px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
+  transition: max-height 0.3s ease-in-out, border-radius 0.3s ease-in-out;
   z-index: 1000;
 }
 
 .mobile-nav.open {
   max-height: 100vh; /* Allow full height when open */
   overflow-y: auto;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 .mobile-nav-links {
   padding: 1rem;
+  padding-bottom: 1.5rem; /* Add extra padding at bottom for rounded corners */
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -166,6 +169,40 @@ body.menu-open {
   color: var(--primary); /* Match hover color from desktop */
 }
 
+.mobile-nav-link.login-button {
+  background-color: var(--primary, #8bc34a);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  margin: 1.5rem auto;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+  width: calc(100% - 1rem);
+}
+
+.mobile-nav-link.login-button:hover,
+.mobile-nav-link.login-button:focus {
+  background-color: #3cb371;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(46, 139, 87, 0.4);
+}
+
+.mobile-nav-link.login-button svg {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.mobile-nav-link.login-button span {
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  margin-left: 0.25rem;
+}
+
 
 .admin-link {
   color: var(--primary);
@@ -175,7 +212,7 @@ body.menu-open {
 .logout-mobile {
   margin-top: var(--spacing-2);
   border-top: 1px solid var(--border, rgba(0, 0, 0, 0.1));
-  padding-top: 1rem; /* Add some padding to make the top border more visible */
+  padding-top: 1rem;
   color: var(--error);
   background: none;
   border: none;

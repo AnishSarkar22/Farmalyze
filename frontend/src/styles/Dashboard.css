@@ -661,7 +661,6 @@
     flex-wrap: wrap;
     gap: 6px;
   }
-  
 
   .activity-status {
     display: inline-block;
@@ -673,7 +672,7 @@
     min-width: 70px;
     margin-left: auto;
   }
-  
+
   .status-completed {
     color: #2e7d32;
     background: #e8f5e9;
@@ -748,8 +747,6 @@
   .quick-action-item span {
     font-size: 0.75rem;
   }
-
-  
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {

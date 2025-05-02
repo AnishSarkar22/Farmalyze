@@ -11,7 +11,7 @@ import {
   Microscope,
   LayoutDashboard,
   ChevronDown,
-  LogIn
+  LogIn,
 } from "lucide-react";
 import "../styles/Navbar.css";
 import FarmalyzeLogo from "../assets/farmalyze.svg";
@@ -236,7 +236,7 @@ const Navbar = () => {
           <div className="mobile-nav-links">
             <Link
               to="/login"
-              className="mobile-nav-link"
+              className="mobile-nav-link login-button"
               onClick={(e) => {
                 e.preventDefault();
                 closeMenu();
