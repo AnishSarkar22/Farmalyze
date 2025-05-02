@@ -308,7 +308,18 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <div className="container">
         <div className="dashboard-header">
-          <h1 className="dashboard-title">Welcome, {userName} 👋</h1>
+          <h1 className="dashboard-title">
+            Welcome,{" "}
+            {isDashboardLoading ? (
+              <Skeleton
+                width={80}
+                height={30}
+                style={{ display: "inline-block", verticalAlign: "middle" }}
+              />
+            ) : (
+              <>{userName} 👋</>
+            )}
+          </h1>
           <p className="dashboard-subtitle">
             Your agricultural assistant dashboard
           </p>
