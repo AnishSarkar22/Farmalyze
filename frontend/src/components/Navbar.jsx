@@ -10,7 +10,8 @@ import {
   Droplets,
   Microscope,
   LayoutDashboard,
-  ChevronDown
+  ChevronDown,
+  LogIn
 } from "lucide-react";
 import "../styles/Navbar.css";
 import FarmalyzeLogo from "../assets/farmalyze.svg";
@@ -37,26 +38,6 @@ const Navbar = () => {
     };
   }, [scrolled]);
 
-  // const handleLogout = async () => {
-  //   try {
-  //     const response = await fetch("http://127.0.0.1:8000/api/logout", {
-  //       method: "POST",
-  //       credentials: "include",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Logout failed");
-  //     }
-
-  //     logout(); // Clear local auth context
-  //     navigate("/");
-  //   } catch (error) {
-  //     console.error("Logout error:", error);
-  //   }
-  // };
   const handleLogout = () => {
     try {
       logout(); // Clear local auth context
@@ -68,11 +49,25 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+    // If opening the menu, add a class to prevent scrolling
+    if (!isOpen) {
+      document.body.classList.add("menu-open");
+    } else {
+      document.body.classList.remove("menu-open");
+    }
   };
 
   const closeMenu = () => {
     setIsOpen(false);
+    document.body.classList.remove("menu-open");
   };
+
+  useEffect(() => {
+    return () => {
+      // Clean up when component unmounts
+      document.body.classList.remove("menu-open");
+    };
+  }, []);
 
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
@@ -173,43 +168,64 @@ const Navbar = () => {
                 <span>Admin</span>
               </Link>
             ) : ( */}
-              <>
-                <Link
-                  to="/dashboard"
-                  className="mobile-nav-link"
-                  onClick={closeMenu}
-                >
-                  <LayoutDashboard size={20} />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  to="/crop"
-                  className="mobile-nav-link"
-                  onClick={closeMenu}
-                >
-                  <Tractor size={20} />
-                  <span>Crop</span>
-                </Link>
-                <Link
-                  to="/fertilizer"
-                  className="mobile-nav-link"
-                  onClick={closeMenu}
-                >
-                  <Droplets size={20} />
-                  <span>Fertilizer</span>
-                </Link>
-                <Link
-                  to="/disease"
-                  className="mobile-nav-link"
-                  onClick={closeMenu}
-                >
-                  <Microscope size={20} />
-                  <span>Disease</span>
-                </Link>
-              </>
+            <>
+              <Link
+                to="/dashboard"
+                className={`mobile-nav-link ${
+                  location.pathname === "/dashboard" ? "active" : ""
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  closeMenu();
+                  navigate("/dashboard");
+                }}
+              >
+                <LayoutDashboard size={20} />
+                <span>Dashboard</span>
+              </Link>
+              <Link
+                to="/crop"
+                className="mobile-nav-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  closeMenu();
+                  navigate("/crop");
+                }}
+              >
+                <Tractor size={20} />
+                <span>Crop</span>
+              </Link>
+              <Link
+                to="/fertilizer"
+                className="mobile-nav-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  closeMenu();
+                  navigate("/fertilizer");
+                }}
+              >
+                <Droplets size={20} />
+                <span>Fertilizer</span>
+              </Link>
+              <Link
+                to="/disease"
+                className="mobile-nav-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  closeMenu();
+                  navigate("/disease");
+                }}
+              >
+                <Microscope size={20} />
+                <span>Disease</span>
+              </Link>
+            </>
             {/* )} */}
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                closeMenu();
+                handleLogout();
+              }}
               className="mobile-nav-link logout-mobile"
             >
               <LogOut size={20} />
@@ -218,8 +234,17 @@ const Navbar = () => {
           </div>
         ) : (
           <div className="mobile-nav-links">
-            <Link to="/login" className="mobile-nav-link" onClick={closeMenu}>
-              Login
+            <Link
+              to="/login"
+              className="mobile-nav-link"
+              onClick={(e) => {
+                e.preventDefault();
+                closeMenu();
+                navigate("/login");
+              }}
+            >
+              <LogIn size={20} />
+              <span>Login</span>
             </Link>
             {/* <Link
               to="/admin-login"
