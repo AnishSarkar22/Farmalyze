@@ -17,6 +17,8 @@ import {
   CloudSnow,
   CloudFog,
   CloudDrizzle,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 
 import "../styles/Dashboard.css";
@@ -433,6 +435,51 @@ const Dashboard = () => {
             )}
           </div>
 
+          {/* Chatbot Card */}
+          <div className="dashboard-card chatbot-card">
+            <h2 className="card-title">Farm Assistant</h2>
+            <div className="chatbot-container">
+              <div className="chat-messages">
+                <div className="bot-message">
+                  <MessageSquare size={16} />
+                  <p>
+                    Hello! I'm your farming assistant. How can I help you today?
+                  </p>
+                </div>
+                {/* Placeholder for future message history */}
+              </div>
+              <div className="chat-input">
+                <input
+                  type="text"
+                  placeholder="Ask me about farming..."
+                  disabled={isDashboardLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target.value.trim() !== "") {
+                      // Handle message sending when Enter is pressed
+                      // This will connect to your ML backend in the future
+                      console.log("Message sent:", e.target.value);
+                      e.target.value = ""; // Clear input after sending
+                    }
+                  }}
+                />
+                <button
+                  className="send-button"
+                  disabled={isDashboardLoading}
+                  onClick={() => {
+                    const input = document.querySelector(".chat-input input");
+                    if (input.value.trim() !== "") {
+                      // Handle message sending when button is clicked
+                      console.log("Message sent:", input.value);
+                      input.value = ""; // Clear input after sending
+                    }
+                  }}
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Activities card */}
           <div className="dashboard-card activity-card">
             <h2 className="card-title">Recent Activities</h2>
@@ -680,6 +727,7 @@ const Dashboard = () => {
             )}
           </div>
 
+          {/* Tips Card */}
           <div className="dashboard-card tips-card">
             <h2 className="card-title">Farming Tips</h2>
             {isDashboardLoading || isTipsLoading ? (
