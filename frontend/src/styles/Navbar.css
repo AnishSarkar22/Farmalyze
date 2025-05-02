@@ -170,12 +170,12 @@ body.menu-open {
 }
 
 .mobile-nav-link.login-button {
-  background-color: var(--primary, #8bc34a);
-  color: white;
+  background-color: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
   font-weight: 600;
-  padding: 0.75rem 1.25rem;
-  margin: 1.5rem auto;
-  border: none;
+  padding: 0.5rem 1rem; /* to change the size of login button */
+  margin: 0rem auto; /* to change the area around the login button */
   border-radius: 12px;
   display: flex;
   justify-content: center;
@@ -187,7 +187,8 @@ body.menu-open {
 
 .mobile-nav-link.login-button:hover,
 .mobile-nav-link.login-button:focus {
-  background-color: #3cb371;
+  background-color: var(--primary);
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(46, 139, 87, 0.4);
 }
