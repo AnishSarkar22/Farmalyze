@@ -136,8 +136,7 @@ app = Flask(__name__)
 # CORS(app, supports_credentials=True)
 CORS(app, resources={
     r"/api/*": {
-        "origins": "*",
-        # "origins": ["http://localhost:5173"],
+        "origins": ["*"],
         "methods": ["GET", "POST", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True,
@@ -450,4 +449,5 @@ def api_fertilizer_prediction():
         }), 400
 
 if __name__ == "__main__":
-    app.run(debug=True, host='127.0.0.1', port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    app.run(debug=False, host='0.0.0.0', port=port)
