@@ -12,7 +12,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
-def load_model(model_path='models/RandomForest_test.pkl'):
+def load_model(model_path='../models/RandomForest_test.pkl'):
     """Load the trained model from the specified path."""
     with open(model_path, 'rb') as f:
         model = pickle.load(f)
