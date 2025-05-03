@@ -13,6 +13,8 @@ dist-ssr
 *.local
 **/.DS_Store
 .DS_Store
+backend/crop_recommendation/plots/
+backend/crop_recommendation/models/
 
 # Editor directories and files
 .vscode/*

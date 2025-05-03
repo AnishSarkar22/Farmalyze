@@ -12,7 +12,7 @@ import torch
 from datetime import datetime
 from gemini import get_alternative_crops
 from torchvision import transforms
-from supabase import create_client, Client
+# from supabase import create_client, Client
 from utils.fertilizer import fertilizer_dic
 from utils.disease import disease_dic
 from transformers import AutoImageProcessor, AutoModelForImageClassification
