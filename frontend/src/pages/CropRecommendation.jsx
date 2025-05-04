@@ -101,7 +101,7 @@ const CropRecommendation = () => {
     setError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/crop-predict", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/crop-predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,7 +119,7 @@ const CropRecommendation = () => {
 
       const data = await response.json();
 
-      console.log("API Response:", data);
+      // console.log("API Response:", data);
 
       if (data.success) {
         // Get the crop name from either primary_recommendation or prediction

@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
     const initAuth = async () => {
       try {
         // Check backend session first
-        const backendResponse = await fetch('http://127.0.0.1:8000/api/auth/session', {
+        const backendResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
           credentials: 'include'
         });
         const backendData = await backendResponse.json();

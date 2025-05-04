@@ -11,7 +11,7 @@ const ProtectedRoute = () => {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/auth/session', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
           credentials: 'include'
         });
         const data = await response.json();

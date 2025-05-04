@@ -224,7 +224,7 @@ def handle_session():
             json.dumps(data['session']),
             httponly=True,
             secure=True,
-            samesite='Strict',
+            samesite='None',
             max_age=7 * 24 * 60 * 60  # 7 days
         )
         return response

@@ -9,7 +9,7 @@ export const signInWithEmail = async (email, password) => {
     if (error) throw error;
 
     // Sync session with backend
-    const response = await fetch("http://127.0.0.1:8000/api/auth/session", {
+    const response = await fetch("${import.meta.env.VITE_API_URL}/api/auth/session", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -39,7 +39,7 @@ export const signUpWithEmail = async (email, password, metadata) => {
 
   if (data.session) {
     // Store session in backend cookie for auto-sign-in after email verification
-    await fetch("http://127.0.0.1:8000/api/auth/session", {
+    await fetch("${import.meta.env.VITE_API_URL}/api/auth/session", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -70,7 +70,7 @@ export const signInWithGoogle = async () => {
 
 export const signOut = async () => {
   // Clear backend session first
-  await fetch("http://127.0.0.1:8000/api/auth/session", {
+  await fetch("${import.meta.env.VITE_API_URL}/api/auth/session", {
     method: "DELETE",
     credentials: "include",
   });
@@ -83,7 +83,7 @@ export const signOut = async () => {
 export const getCurrentSession = async () => {
   // Try to get session from backend first
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/auth/session", {
+    const response = await fetch("${import.meta.env.VITE_API_URL}/api/auth/session", {
       credentials: "include",
     });
     const data = await response.json();
