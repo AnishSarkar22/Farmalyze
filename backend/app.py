@@ -29,31 +29,9 @@ load_dotenv()
 # -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
 
 # Loading crop recommendation model
-# crop_recommendation_model_path = './models/EnhancedRandomForest.pkl'
-# crop_recommendation_model = pickle.load(
-#     open(crop_recommendation_model_path, 'rb'))
-
-crop_recommendation_model = None
-processor = None
-disease_model = None
-
-def load_crop_model():
-    """Load crop recommendation model on demand"""
-    global crop_recommendation_model
-    if crop_recommendation_model is None:
-        crop_recommendation_model_path = './models/EnhancedRandomForest.pkl'
-        crop_recommendation_model = pickle.load(open(crop_recommendation_model_path, 'rb'))
-    return crop_recommendation_model
-
-def load_disease_models():
-    """Load disease prediction models on demand"""
-    global processor, disease_model
-    if processor is None or disease_model is None:
-        model_name = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
-        processor = AutoImageProcessor.from_pretrained(model_name)
-        disease_model = AutoModelForImageClassification.from_pretrained(model_name)
-        disease_model.eval()
-    return processor, disease_model
+crop_recommendation_model_path = './models/EnhancedRandomForest.pkl'
+crop_recommendation_model = pickle.load(
+    open(crop_recommendation_model_path, 'rb'))
 
 # Loading plant disease classification model
 
@@ -103,12 +81,11 @@ def load_disease_models():
 # disease_model.load_state_dict(torch.load(
 #     disease_model_path, map_location=torch.device('cpu')))
 # disease_model.eval()
+model_name = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
+processor = AutoImageProcessor.from_pretrained(model_name)
+disease_model = AutoModelForImageClassification.from_pretrained(model_name)
+disease_model.eval()
 
-
-# model_name = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
-# processor = AutoImageProcessor.from_pretrained(model_name)
-# disease_model = AutoModelForImageClassification.from_pretrained(model_name)
-# disease_model.eval()
 
 def weather_fetch(city_name):
     """
@@ -132,15 +109,12 @@ def weather_fetch(city_name):
     else:
         return None
 
-def predict_image(img):
+def predict_image(img, model=disease_model):
     """
     Transforms image to tensor and predicts disease label
     :params: image bytes
     :return: prediction (string)
     """
-    # Load models on demand
-    processor, model = load_disease_models()
-    
     # Open image from bytes and convert to RGB
     image = Image.open(io.BytesIO(img)).convert('RGB')
     
@@ -342,32 +316,6 @@ def get_weather_data():
             'error': str(e)
         }), 500
 
-def clear_model_memory():
-    """Clear model memory when under memory pressure"""
-    global crop_recommendation_model, processor, disease_model
-    
-    # Reset variables to None to allow garbage collection
-    crop_recommendation_model = None
-    processor = None
-    disease_model = None
-    
-    # Force garbage collection
-    import gc
-    gc.collect()
-    
-    return {"success": True, "message": "Model memory cleared"}
-
-# Add an endpoint to manually clear memory if needed
-@app.route('/api/clear-memory', methods=['POST'])
-def api_clear_memory():
-    try:
-        result = clear_model_memory()
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
 
 # ===============================================================================================
 # DISEASE PREDICTION
@@ -412,6 +360,7 @@ def api_disease_prediction():
 
 # render crop recommendation result page
 @app.route('/api/crop-predict', methods=['POST'])
+# @login_required
 def api_crop_prediction():
     try:
         data = request.get_json()
@@ -426,12 +375,8 @@ def api_crop_prediction():
             temperature, humidity = weather_fetch(city)
             input_data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
             
-            
-            # Load model on demand
-            crop_model = load_crop_model()
-            
             # Get probability predictions for all crops
-            crop_probabilities = crop_model.predict_proba(input_data)[0]
+            crop_probabilities = crop_recommendation_model.predict_proba(input_data)[0]
             
             # Get indices of top 3 predictions
             top_indices = np.argsort(crop_probabilities)[::-1][:3]
