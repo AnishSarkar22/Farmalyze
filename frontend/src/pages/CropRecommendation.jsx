@@ -75,7 +75,6 @@ const CropRecommendation = () => {
     }
   };
 
-  // First modify the handleSubmit function:
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -120,25 +119,81 @@ const CropRecommendation = () => {
 
       const data = await response.json();
 
+      console.log("API Response:", data);
+
       if (data.success) {
+        // Get the crop name from either primary_recommendation or prediction
+        const recommendedCrop = data.primary_recommendation || data.prediction;
+
+        // Create a properly formatted recommendations array for storage
+        const recommendationsToStore = Array.isArray(data.recommendations)
+          ? data.recommendations
+          : Array.isArray(data.alternatives)
+          ? data.alternatives.map((alt) => ({
+              crop: alt.name,
+              confidence: alt.confidence,
+            }))
+          : [{ crop: recommendedCrop, confidence: 0 }];
+
         // Store activity in Supabase
         await supabase.from("user_activities").insert({
           user_id: session.user.id,
           activity_type: "crop",
           title: `Crop Recommendation for ${formData.city}`,
-          result: `Recommended crop: ${data.prediction}`,
+          result: `Recommended crop: ${recommendedCrop || "Not available"}`,
           details: {
             conditions: data.conditions,
-            alternatives: data.alternatives,
+            recommendations: recommendationsToStore,
+            alternatives: Array.isArray(data.alternatives)
+              ? data.alternatives
+              : [],
           },
         });
+
+        // Check if recommendations array exists before trying to use find()
+        let confidence = 0;
+
+        // First attempt to get confidence from recommendations if they exist
+        if (Array.isArray(data.recommendations)) {
+          const mainRecommendation = data.recommendations.find(
+            (rec) =>
+              rec.crop === (data.primary_recommendation || data.prediction)
+          );
+          confidence = mainRecommendation?.confidence || 0;
+        }
+        // If no recommendations or confidence found, use alternatives if they exist
+        else if (
+          Array.isArray(data.alternatives) &&
+          data.alternatives.length > 0
+        ) {
+          confidence = data.alternatives[0].confidence || 0;
+        }
+
         setResult({
           recommendedCrop: {
-            name: data.prediction,
-            confidence: 95,
-            description: `Based on your soil parameters and weather conditions in ${formData.city}, ${data.prediction} is recommended as the best crop for your farm.`,
+            name: data.primary_recommendation || data.prediction,
+            confidence: confidence,
+            description: `Based on your soil parameters and weather conditions in ${
+              formData.city
+            }, ${
+              data.primary_recommendation || data.prediction
+            } is recommended as the best crop for your farm.`,
           },
-          alternatives: data.alternatives,
+          alternatives: Array.isArray(data.recommendations)
+            ? data.recommendations
+                .filter(
+                  (rec) =>
+                    rec.crop !==
+                    (data.primary_recommendation || data.prediction)
+                )
+                .map((rec) => ({
+                  name: rec.crop,
+                  confidence: rec.confidence || 0,
+                  reason: `Alternative crop option based on your soil parameters and local weather conditions.`,
+                }))
+            : Array.isArray(data.alternatives)
+            ? data.alternatives
+            : [],
           conditions: data.conditions,
           soilHealth: data.conditions.soil_health,
           soilHealthDescription: `Your soil parameters indicate ${data.conditions.soil_health.toLowerCase()} growing conditions. The current temperature is ${
@@ -147,6 +202,7 @@ const CropRecommendation = () => {
         });
       } else {
         setError(data.error || "Failed to get prediction");
+        console.error("Invalid API response structure:", data);
       }
     } catch (err) {
       setError("Failed to connect to the server");

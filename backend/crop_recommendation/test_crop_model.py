@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# old crop model test
 """
 This script demonstrates how to use the trained Random Forest model for crop recommendation.
 It loads the saved model and makes predictions based on input soil and weather parameters.

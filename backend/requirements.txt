@@ -42,4 +42,7 @@ tokenizers==0.15.0
 flask-cors==4.0.0
 # supabase==2.15.0
 python-dotenv==1.0.0
-google-genai==1.13.0
+# google-genai==1.13.0
+
+plotly==6.0.1
+dash==3.0.4

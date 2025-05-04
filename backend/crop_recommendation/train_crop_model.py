@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# old crop training model
 """
 This script trains and evaluates a Random Forest model for crop recommendation
 using scikit-learn 1.3.2 on the Crop Recommendation dataset.
@@ -12,7 +12,7 @@ Requirements:
 
 Usage:
 1. Place the Crop_recommendation.csv file in the Data directory
-2. Run this script: python train_crop_recommendation_model.py
+2. Run this script: python train_crop_model.py
 3. The trained model will be saved as 'models/RandomForest.pkl'
 """
 

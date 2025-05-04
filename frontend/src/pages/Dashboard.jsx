@@ -480,7 +480,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Activities card */}
+          {/* Recent Activities card */}
           <div className="dashboard-card activity-card">
             <h2 className="card-title">Recent Activities</h2>
             {isDashboardLoading ? (
@@ -576,40 +576,116 @@ const Dashboard = () => {
                               activity.details && (
                                 <div className="activity-details-expanded">
                                   {activity.type === "crop" && (
-                                    <div className="details-grid">
-                                      <div className="detail-item">
-                                        <span className="detail-label-activity">
-                                          Temperature
-                                        </span>
-                                        <span className="detail-value-activity">
-                                          {
-                                            activity.details.conditions
-                                              .temperature
-                                          }
-                                          °C
-                                        </span>
+                                    <>
+                                      <div className="details-grid">
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Temperature
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {
+                                              activity.details.conditions
+                                                .temperature
+                                            }
+                                            °C
+                                          </span>
+                                        </div>
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Humidity
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {
+                                              activity.details.conditions
+                                                .humidity
+                                            }
+                                            %
+                                          </span>
+                                        </div>
+                                        <div className="detail-item">
+                                          <span className="detail-label-activity">
+                                            Soil Health
+                                          </span>
+                                          <span className="detail-value-activity">
+                                            {
+                                              activity.details.conditions
+                                                .soil_health
+                                            }
+                                          </span>
+                                        </div>
                                       </div>
-                                      <div className="detail-item">
-                                        <span className="detail-label-activity">
-                                          Humidity
-                                        </span>
-                                        <span className="detail-value-activity">
-                                          {activity.details.conditions.humidity}
-                                          %
-                                        </span>
-                                      </div>
-                                      <div className="detail-item">
-                                        <span className="detail-label-activity">
-                                          Soil Health
-                                        </span>
-                                        <span className="detail-value-activity">
-                                          {
-                                            activity.details.conditions
-                                              .soil_health
-                                          }
-                                        </span>
-                                      </div>
-                                    </div>
+
+                                      {/* alternative crops section */}
+                                      {/* alternative crops section */}
+                                      {((Array.isArray(
+                                        activity.details.recommendations
+                                      ) &&
+                                        activity.details.recommendations
+                                          .length > 1) ||
+                                        (Array.isArray(
+                                          activity.details.alternatives
+                                        ) &&
+                                          activity.details.alternatives.length >
+                                            0)) && (
+                                        <div className="alternative-crops-section">
+                                          <h4 className="alternatives-title">
+                                            Alternative Crops
+                                          </h4>
+                                          <div className="alternatives-text">
+                                            {/* Combine all alternative crop names into a comma-separated string */}
+                                            {(() => {
+                                              // Get the main recommended crop name to exclude it
+                                              const mainCropName =
+                                                activity.result
+                                                  ? activity.result
+                                                      .replace(
+                                                        "Recommended crop: ",
+                                                        ""
+                                                      )
+                                                      .trim()
+                                                  : "";
+
+                                              // Get crop names from recommendations array (excluding the main crop)
+                                              const recCrops = Array.isArray(
+                                                activity.details.recommendations
+                                              )
+                                                ? activity.details.recommendations
+                                                    .filter(
+                                                      (rec) =>
+                                                        rec.crop !==
+                                                        mainCropName
+                                                    )
+                                                    .map((crop) => crop.crop)
+                                                : [];
+
+                                              // Get crop names from alternatives array (excluding the main crop)
+                                              const altCrops = Array.isArray(
+                                                activity.details.alternatives
+                                              )
+                                                ? activity.details.alternatives
+                                                    .filter(
+                                                      (alt) =>
+                                                        alt.name !==
+                                                        mainCropName
+                                                    )
+                                                    .map((alt) => alt.name)
+                                                : [];
+
+                                              // Create a Set to remove duplicates from combined arrays
+                                              const uniqueCrops = [
+                                                ...new Set([
+                                                  ...recCrops,
+                                                  ...altCrops,
+                                                ]),
+                                              ];
+
+                                              // Return comma-separated string of unique alternative crops
+                                              return uniqueCrops.join(", ");
+                                            })()}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                   {activity.type === "fertilizer" && (
                                     <>

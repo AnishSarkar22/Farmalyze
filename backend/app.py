@@ -10,7 +10,7 @@ import pickle
 import io
 import torch
 from datetime import datetime
-from gemini import get_alternative_crops
+# from gemini import get_alternative_crops
 from torchvision import transforms
 # from supabase import create_client, Client
 from utils.fertilizer import fertilizer_dic
@@ -29,7 +29,7 @@ load_dotenv()
 # -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
 
 # Loading crop recommendation model
-crop_recommendation_model_path = 'models/RandomForest.pkl'
+crop_recommendation_model_path = './models/EnhancedRandomForest.pkl'
 crop_recommendation_model = pickle.load(
     open(crop_recommendation_model_path, 'rb'))
 
@@ -374,9 +374,40 @@ def api_crop_prediction():
         if weather_fetch(city) is not None:
             temperature, humidity = weather_fetch(city)
             input_data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
-            prediction = crop_recommendation_model.predict(input_data)[0]
             
-            # Get soil conditions summary
+            # Get probability predictions for all crops
+            crop_probabilities = crop_recommendation_model.predict_proba(input_data)[0]
+            
+            # Get indices of top 3 predictions
+            top_indices = np.argsort(crop_probabilities)[::-1][:3]
+            
+            # Get the crop names for the top 3 predictions
+            top_crops = [crop_recommendation_model.classes_[i] for i in top_indices]
+            
+            # Get the probabilities for the top 3 predictions (convert to percentage)
+            top_probabilities = [round(crop_probabilities[i] * 100, 2) for i in top_indices]
+            
+            # Primary crop (first recommendation)
+            primary_crop = top_crops[0]
+            primary_confidence = top_probabilities[0]
+            
+            # Create list of recommendations with probabilities
+            recommendations = [
+                {"crop": crop, "confidence": prob} 
+                for crop, prob in zip(top_crops, top_probabilities)
+            ]
+            
+            # Create alternative crops list (the 2nd and 3rd recommendations)
+            alternatives = [
+                {
+                    "name": crop, 
+                    "confidence": prob,
+                    "reason": f"Alternative crop option based on your soil parameters and local weather conditions."
+                } 
+                for crop, prob in zip(top_crops[1:], top_probabilities[1:])
+            ]
+            
+            # Soil conditions summary
             soil_conditions = {
                 "nitrogen": N,
                 "phosphorus": P,
@@ -387,20 +418,20 @@ def api_crop_prediction():
                 "humidity": humidity
             }
             
-            # Get alternative crops
-            alternatives = get_alternative_crops(prediction, soil_conditions, city)
-            
-            
+            # Return response in the format expected by the frontend
             return jsonify({
                 'success': True,
-                'prediction': prediction,
+                'prediction': primary_crop,
+                'primary_recommendation': primary_crop,
+                'recommendations': recommendations,
                 'alternatives': alternatives,
                 'conditions': {
                     'temperature': temperature,
                     'humidity': humidity,
                     'soil_health': 'Good' if (6.0 <= ph <= 7.5) else 'Fair',
                     'location': city
-                }
+                },
+                'soil_data': soil_conditions
             }), 200
         else:
             return jsonify({
@@ -409,11 +440,12 @@ def api_crop_prediction():
             }), 400
 
     except Exception as e:
+        print(f"Error in crop prediction: {str(e)}")  # Add server-side logging
         return jsonify({
             'success': False,
             'error': str(e)
         }), 400
-
+        
 # render fertilizer suggestion result page
 @app.route('/api/fertilizer-predict', methods=['POST'])
 # @login_required

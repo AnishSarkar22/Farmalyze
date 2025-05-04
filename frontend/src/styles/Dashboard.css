@@ -36,7 +36,7 @@
 }
 /* Ensure the activity card has a fixed height */
 .dashboard-card.activity-card {
-  height: 350px;
+  height: 370px !important;
   display: flex;
   flex-direction: column;
 }
@@ -412,8 +412,7 @@
 
 /* Tips Card */
 .tips-card {
-  padding: 1.25rem;
-  height: 400px !important;
+  height: 370px !important;
   overflow: hidden;
 }
 
@@ -633,6 +632,51 @@
 .send-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+/* Add this to your Dashboard.css file */
+.alternative-crops-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.alternatives-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.alternatives-text {
+  color: #2E7D32;
+  font-weight: 500;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.alternatives-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.alternative-crop-item {
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.crop-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: #2E7D32;
+}
+
+.crop-confidence {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
 }
 
 /* Responsive */

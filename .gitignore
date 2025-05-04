@@ -15,6 +15,7 @@ dist-ssr
 .DS_Store
 backend/crop_recommendation/plots/
 backend/crop_recommendation/models/
+backend/crop_recommendation/recommendations/
 
 # Editor directories and files
 .vscode/*
