@@ -225,9 +225,11 @@ const Dashboard = () => {
       setIsWeatherLoading(true);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/weather?lat=${position.latitude}&lon=${position.longitude}`
+          `${import.meta.env.VITE_API_URL}/api/weather?lat=${
+            position.latitude
+          }&lon=${position.longitude}`
         );
-  
+
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -246,9 +248,9 @@ const Dashboard = () => {
         handleWeatherError("Could not fetch weather data");
       } finally {
         setIsWeatherLoading(false);
-        setLoadingStates(prev => ({
+        setLoadingStates((prev) => ({
           ...prev,
-          weather: false
+          weather: false,
         }));
       }
     };
@@ -269,9 +271,9 @@ const Dashboard = () => {
       const options = {
         enableHighAccuracy: true,
         timeout: 5000,
-        maximumAge: 0
+        maximumAge: 0,
       };
-  
+
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           await fetchWeatherData({
@@ -388,7 +390,18 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="weather-content">
-                <div className="weather-location">{weatherData.location}</div>
+                <div className="weather-location">
+                  {weatherData.location === "Weather Unavailable" ? (
+                    <div className="weather-error">
+                      <AlertCircle size={16} />
+                      <span>{weatherData.forecast}</span>
+                    </div>
+                  ) : (
+                    weatherData.location
+                  )}
+                </div>
+                {weatherData.location !== "Weather Unavailable" && (
+                  <>
                 <div className="weather-main">
                   <div className="weather-icon">
                     {/* Weather icons based on OpenWeather conditions */}
@@ -435,6 +448,8 @@ const Dashboard = () => {
                     <span className="detail-value">{weatherData.forecast}</span>
                   </div>
                 </div>
+                </>
+                )}
               </div>
             )}
           </div>
