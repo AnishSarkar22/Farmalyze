@@ -225,9 +225,7 @@ const Dashboard = () => {
       setIsWeatherLoading(true);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/weather?lat=${
-            position.latitude
-          }&lon=${position.longitude}`
+          `${import.meta.env.VITE_API_URL}/api/weather?lat=${position.latitude}&lon=${position.longitude}`
         );
 
         if (response.ok) {
@@ -245,35 +243,30 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Error fetching weather data:", error);
-        handleWeatherError("Could not fetch weather data");
+        setWeatherData({
+          location: "Location unavailable",
+          temperature: "--°C",
+          humidity: "--%",
+          rainfall: "--mm",
+          forecast: "Weather data unavailable",
+          windSpeed: "--m/s",
+        });
       } finally {
         setIsWeatherLoading(false);
-        setLoadingStates((prev) => ({
-          ...prev,
-          weather: false,
-        }));
+        // Update unified loading state
+        setLoadingStates((prev) => {
+          const newState = { ...prev, weather: false };
+          // Check if all components are loaded
+          if (!newState.weather && !newState.activities) {
+            setIsDashboardLoading(false);
+          }
+          return newState;
+        });
       }
-    };
-
-    const handleWeatherError = (message) => {
-      setWeatherData({
-        location: "Weather Unavailable",
-        temperature: "--°C",
-        humidity: "--%",
-        rainfall: "--mm",
-        forecast: message || "Weather data unavailable",
-        windSpeed: "--m/s",
-      });
     };
 
     // Get user's location
     if ("geolocation" in navigator) {
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      };
-
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           await fetchWeatherData({
@@ -282,25 +275,26 @@ const Dashboard = () => {
           });
         },
         (error) => {
-          console.error("Geolocation error:", error.message);
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              handleWeatherError("Please enable location access");
-              break;
-            case error.POSITION_UNAVAILABLE:
-              handleWeatherError("Location information unavailable");
-              break;
-            case error.TIMEOUT:
-              handleWeatherError("Location request timed out");
-              break;
-            default:
-              handleWeatherError("Could not get location");
-          }
-        },
-        options
+          console.error("Error getting location:", error);
+          setWeatherData({
+            location: "Location access denied",
+            temperature: "--°C",
+            humidity: "--%",
+            rainfall: "--mm",
+            forecast: "Please enable location access",
+            windSpeed: "--m/s",
+          });
+        }
       );
     } else {
-      handleWeatherError("Geolocation not supported");
+      setWeatherData({
+        location: "Geolocation not supported",
+        temperature: "--°C",
+        humidity: "--%",
+        rainfall: "--mm",
+        forecast: "Weather data unavailable",
+        windSpeed: "--m/s",
+      });
     }
   }, []);
 
@@ -390,18 +384,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="weather-content">
-                <div className="weather-location">
-                  {weatherData.location === "Weather Unavailable" ? (
-                    <div className="weather-error">
-                      <AlertCircle size={16} />
-                      <span>{weatherData.forecast}</span>
-                    </div>
-                  ) : (
-                    weatherData.location
-                  )}
-                </div>
-                {weatherData.location !== "Weather Unavailable" && (
-                  <>
+                <div className="weather-location">{weatherData.location}</div>
                 <div className="weather-main">
                   <div className="weather-icon">
                     {/* Weather icons based on OpenWeather conditions */}
@@ -448,8 +431,6 @@ const Dashboard = () => {
                     <span className="detail-value">{weatherData.forecast}</span>
                   </div>
                 </div>
-                </>
-                )}
               </div>
             )}
           </div>

@@ -153,18 +153,34 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['CORS_SUPPORTS_CREDENTIALS'] = True
 
 
-# Using kee-alive for render (Flask 2.3.0+)
-with app.app_context():
-    @app.after_request
-    def setup_keep_alive(response):
-        # Only run once
-        if not hasattr(app, '_keep_alive_started') and os.getenv('RENDER_EXTERNAL_URL'):
-            app._keep_alive_started = True
-            keep_alive_thread = threading.Thread(target=keep_alive)
-            keep_alive_thread.daemon = True
-            keep_alive_thread.start()
-            print("Keep-alive service started for Render")
-        return response
+# Using keep-alive for render (Flask 2.3.0+)
+def keep_alive():
+    """
+    Function to keep the server alive by making a request every 14 minutes
+    """
+    while True:
+        try:
+            external_url = os.getenv('RENDER_EXTERNAL_URL')
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            if external_url:
+                if external_url.startswith(('http://', 'https://')):
+                    external_url = external_url.split('://')[-1]
+                
+                url = f"https://{external_url}/api/health"
+                response = requests.get(url)
+                
+                print(f"[{current_time}] Keep-alive ping sent to {url}")
+                print(f"[{current_time}] Response status: {response.status_code}")
+                print(f"[{current_time}] Response body: {response.json()}")
+            else:
+                print(f"[{current_time}] ERROR: RENDER_EXTERNAL_URL not set")
+            
+            time.sleep(840)  # 14 minutes
+            
+        except Exception as e:
+            print(f"[{current_time}] Keep-alive error: {str(e)}")
+            time.sleep(60)  # Wait 1 minute before retrying
 
 # ===============================================================================================
 # TEST ROUTES
