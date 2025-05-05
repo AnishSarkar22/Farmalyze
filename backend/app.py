@@ -19,6 +19,9 @@ from transformers import AutoImageProcessor, AutoModelForImageClassification
 from PIL import Image
 from dotenv import load_dotenv
 
+import threading
+import time
+
 load_dotenv()
 
 # supabase: Client = create_client(
@@ -148,6 +151,20 @@ CORS(app, resources={
 app.config['JSON_SORT_KEYS'] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['CORS_SUPPORTS_CREDENTIALS'] = True
+
+
+# Using kee-alive for render (Flask 2.3.0+)
+with app.app_context():
+    @app.after_request
+    def setup_keep_alive(response):
+        # Only run once
+        if not hasattr(app, '_keep_alive_started') and os.getenv('RENDER_EXTERNAL_URL'):
+            app._keep_alive_started = True
+            keep_alive_thread = threading.Thread(target=keep_alive)
+            keep_alive_thread.daemon = True
+            keep_alive_thread.start()
+            print("Keep-alive service started for Render")
+        return response
 
 # ===============================================================================================
 # TEST ROUTES
@@ -486,6 +503,21 @@ def api_fertilizer_prediction():
             'success': False,
             'error': str(e)
         }), 400
+
+# used to keep my app alive in render host
+def keep_alive():
+    """
+    Function to keep the server alive by making a request every 14 minutes
+    """
+    while True:
+        try:
+            # Wait for 14 minutes (840 seconds)
+            time.sleep(840)
+            # Make a request to your own health endpoint
+            requests.get(f"https://{os.getenv('RENDER_EXTERNAL_URL', 'localhost:8000')}/api/health")
+            print("Keep-alive ping sent")
+        except Exception as e:
+            print(f"Keep-alive error: {e}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

@@ -82,7 +82,7 @@ const FertilizerRecommendation = () => {
     // Validate form inputs
     try {
       const response = await fetch(
-        "http://localhost:8000/api/fertilizer-predict",
+        `${import.meta.env.VITE_API_URL}/api/fertilizer-predict`,
         {
           method: "POST",
           headers: {
