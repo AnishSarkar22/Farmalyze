@@ -679,6 +679,18 @@
   margin-top: 2px;
 }
 
+.weather-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.weather-error svg {
+  color: #f59e0b;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   /* Custom scrollbar styling for mobile */

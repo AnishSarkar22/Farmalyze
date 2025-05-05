@@ -227,7 +227,7 @@ const Dashboard = () => {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/api/weather?lat=${position.latitude}&lon=${position.longitude}`
         );
-
+  
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -243,30 +243,35 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Error fetching weather data:", error);
-        setWeatherData({
-          location: "Location unavailable",
-          temperature: "--°C",
-          humidity: "--%",
-          rainfall: "--mm",
-          forecast: "Weather data unavailable",
-          windSpeed: "--m/s",
-        });
+        handleWeatherError("Could not fetch weather data");
       } finally {
         setIsWeatherLoading(false);
-        // Update unified loading state
-        setLoadingStates((prev) => {
-          const newState = { ...prev, weather: false };
-          // Check if all components are loaded
-          if (!newState.weather && !newState.activities) {
-            setIsDashboardLoading(false);
-          }
-          return newState;
-        });
+        setLoadingStates(prev => ({
+          ...prev,
+          weather: false
+        }));
       }
+    };
+
+    const handleWeatherError = (message) => {
+      setWeatherData({
+        location: "Weather Unavailable",
+        temperature: "--°C",
+        humidity: "--%",
+        rainfall: "--mm",
+        forecast: message || "Weather data unavailable",
+        windSpeed: "--m/s",
+      });
     };
 
     // Get user's location
     if ("geolocation" in navigator) {
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      };
+  
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           await fetchWeatherData({
@@ -275,26 +280,25 @@ const Dashboard = () => {
           });
         },
         (error) => {
-          console.error("Error getting location:", error);
-          setWeatherData({
-            location: "Location access denied",
-            temperature: "--°C",
-            humidity: "--%",
-            rainfall: "--mm",
-            forecast: "Please enable location access",
-            windSpeed: "--m/s",
-          });
-        }
+          console.error("Geolocation error:", error.message);
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              handleWeatherError("Please enable location access");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              handleWeatherError("Location information unavailable");
+              break;
+            case error.TIMEOUT:
+              handleWeatherError("Location request timed out");
+              break;
+            default:
+              handleWeatherError("Could not get location");
+          }
+        },
+        options
       );
     } else {
-      setWeatherData({
-        location: "Geolocation not supported",
-        temperature: "--°C",
-        humidity: "--%",
-        rainfall: "--mm",
-        forecast: "Weather data unavailable",
-        windSpeed: "--m/s",
-      });
+      handleWeatherError("Geolocation not supported");
     }
   }, []);
 
