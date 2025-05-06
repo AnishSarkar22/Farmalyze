@@ -10,7 +10,6 @@ import pickle
 import io
 import torch
 from datetime import datetime
-# from gemini import get_alternative_crops
 from torchvision import transforms
 # from supabase import create_client, Client
 from utils.fertilizer import fertilizer_dic
@@ -151,36 +150,6 @@ CORS(app, resources={
 app.config['JSON_SORT_KEYS'] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['CORS_SUPPORTS_CREDENTIALS'] = True
-
-
-# Using keep-alive for render (Flask 2.3.0+)
-def keep_alive():
-    """
-    Function to keep the server alive by making a request every 14 minutes
-    """
-    while True:
-        try:
-            external_url = os.getenv('RENDER_EXTERNAL_URL')
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            if external_url:
-                if external_url.startswith(('http://', 'https://')):
-                    external_url = external_url.split('://')[-1]
-                
-                url = f"https://{external_url}/api/health"
-                response = requests.get(url)
-                
-                print(f"[{current_time}] Keep-alive ping sent to {url}")
-                print(f"[{current_time}] Response status: {response.status_code}")
-                print(f"[{current_time}] Response body: {response.json()}")
-            else:
-                print(f"[{current_time}] ERROR: RENDER_EXTERNAL_URL not set")
-            
-            time.sleep(840)  # 14 minutes
-            
-        except Exception as e:
-            print(f"[{current_time}] Keep-alive error: {str(e)}")
-            time.sleep(60)  # Wait 1 minute before retrying
 
 # ===============================================================================================
 # TEST ROUTES
@@ -519,21 +488,6 @@ def api_fertilizer_prediction():
             'success': False,
             'error': str(e)
         }), 400
-
-# used to keep my app alive in render host
-def keep_alive():
-    """
-    Function to keep the server alive by making a request every 14 minutes
-    """
-    while True:
-        try:
-            # Wait for 14 minutes (840 seconds)
-            time.sleep(840)
-            # Make a request to your own health endpoint
-            requests.get(f"https://{os.getenv('RENDER_EXTERNAL_URL', 'localhost:8000')}/api/health")
-            print("Keep-alive ping sent")
-        except Exception as e:
-            print(f"Keep-alive error: {e}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
