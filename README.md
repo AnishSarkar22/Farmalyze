@@ -126,6 +126,9 @@ This web-based platform includes three key applications:
 ---
 
 ## 🤝 Contribution
+
+Special thanks to **[Soumalya](https://github.com/soumalyasmp)** for their invaluable contributions to the frontend
+
 Feel free to fork this repository and contribute by:
 - Adding support for more crops
 - Improving model accuracy
