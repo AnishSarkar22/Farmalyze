@@ -139,4 +139,4 @@ For queries or suggestions, feel free to open an issue or reach out!
 ---
 
 ## 💳 License
-This software is released under the [MIT](https://github.com/AnishSarkar22/Farmalyze/blob/main/LICENSE) License.
+This software is released under the [GNU AGPL-3.0](https://github.com/AnishSarkar22/Farmalyze/blob/main/LICENSE) License.
