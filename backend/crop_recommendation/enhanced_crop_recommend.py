@@ -1,4 +1,5 @@
-# Run this instead of test_crop_model.py
+# RUN THIS instead of test_crop_model.py
+
 """
 Enhanced Crop Recommendation System
 

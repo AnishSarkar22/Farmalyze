@@ -1,11 +1,11 @@
 # 🌾 Smart Agriculture System using Machine Learning & IoT
 
 ## 📊 Data Sources
-- [Crop Recommendation Dataset](https://www.kaggle.com/atharvaingle/crop-recommendation-dataset) – Predicts suitable crops based on soil and weather data.
-- [Fertilizer Suggestion Dataset](https://github.com/Gladiator07/Harvestify/blob/master/Data-processed/fertilizer.csv) – Recommends fertilizers based on soil nutrient analysis.
-- [Plant Disease Detection Dataset](https://www.kaggle.com/vipoooool/new-plant-diseases-dataset) – Image dataset for plant disease classification.
+- [Crop Recommendation Dataset](https://www.kaggle.com/atharvaingle/crop-recommendation-dataset) – This dataset contains 2200+ samples with 7 key features—Nitrogen, Phosphorus, Potassium ratios, temperature (°C), humidity (%), soil pH, and rainfall (mm)—to predict the most suitable crop for optimal yield and resource management in Indian agricultural conditions.
+- [Fertilizer Suggestion Dataset](https://github.com/Gladiator07/Harvestify/blob/master/Data-processed/fertilizer.csv) – This dataset contains nutrient requirements (N, P, K), soil pH, and soil moisture levels for 23 crops, enabling precise fertilizer recommendations tailored to specific crop-soil conditions.
+- [Plant Disease Detection Dataset](https://www.kaggle.com/vipoooool/new-plant-diseases-dataset) – The New Plant Diseases Dataset contains approximately 87,900 RGB images of healthy and diseased crop leaves, categorized into 38 classes, with an 80/20 train-validation split for robust plant disease classification.
 - [Plant Disease Identification Model](https://huggingface.co/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification) - A pre-trained MobileNetV2 model hosted on Hugging Face, fine-tuned on the Kaggle Plant Diseases Dataset. Supports identification of 38 different plant diseases across various crop species.
-
+ 
 ---
 
 ## 🌱 Overview

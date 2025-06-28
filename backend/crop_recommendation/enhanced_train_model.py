@@ -1,4 +1,5 @@
-# Use this to train model for crop recommendation instead of train_crop_model.py
+# RUN THIS to train model for crop recommendation instead of train_crop_model.py
+
 """
 Crop Recommendation Model Training
 

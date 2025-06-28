@@ -1,4 +1,10 @@
-# old crop disease detection model
+# old crop disease detection model (DON'T USE THIS - Only for internal purposes)
+
+
+# This model is used with RandomForest.pkl to predict crop disease
+# This model is used with plant_disease_model.pth to predict plant disease
+# This model is used with crop_recommendation.csv to predict crop recommendation
+# This model is used with fertilizer.csv to predict fertilizer recommendation
 import string
 import bcrypt
 import os

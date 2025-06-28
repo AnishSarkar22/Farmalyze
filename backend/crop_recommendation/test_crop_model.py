@@ -1,4 +1,5 @@
-# old crop model test
+# old crop model test (DON'T USE THIS - Only for internal purposes))
+
 """
 This script demonstrates how to use the trained Random Forest model for crop recommendation.
 It loads the saved model and makes predictions based on input soil and weather parameters.

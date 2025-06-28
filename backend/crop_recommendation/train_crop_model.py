@@ -1,4 +1,5 @@
-# old crop training model
+# old crop training model (DON'T USE THIS - Only for internal purposes)
+
 """
 This script trains and evaluates a Random Forest model for crop recommendation
 using scikit-learn 1.3.2 on the Crop Recommendation dataset.
