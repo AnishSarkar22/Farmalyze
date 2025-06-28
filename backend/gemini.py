@@ -1,3 +1,5 @@
+# This file is not part of the main application; it was created for initial machine learning experiments
+
 import google.genai as genai
 import os
 import json
