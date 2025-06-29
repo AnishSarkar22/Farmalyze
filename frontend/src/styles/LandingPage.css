@@ -360,3 +360,129 @@
     display: block;
   }
 }
+
+
+/* How It Works Steps Horizontal */
+.steps-horizontal {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 3rem 0 2rem 0;
+  gap: 0;
+  position: relative;
+}
+
+.step-horizontal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1 1 0;
+  min-width: 180px;
+  max-width: 260px;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 48px;
+  height: 48px;
+  background: #4caf8e;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  z-index: 2;
+  border: 4px solid #e0e0e0;
+}
+
+.step-info {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.step-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+
+.step-desc {
+  font-size: 1rem;
+  color: #555;
+  margin: 0;
+}
+
+.step-horizontal-connector {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: 100%;
+  height: 4px;
+  background: #4caf8e;
+  z-index: 0;
+  transform: translateX(0);
+}
+
+.step-horizontal:not(:last-child) .step-horizontal-connector {
+  display: block;
+}
+
+.step-horizontal:last-child .step-horizontal-connector {
+  display: none;
+}
+
+/* Desktop: horizontal connector */
+.steps-horizontal .step-horizontal:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: calc(100% + 24px);
+  height: 4px;
+  background: #4caf8e;
+  z-index: 0;
+  transform: translateX(0);
+  border-radius: 2px;
+}
+
+@media (max-width: 900px) {
+  .steps-horizontal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2.5rem;
+  }
+  .step-horizontal {
+    flex-direction: row;
+    align-items: flex-start;
+    min-width: unset;
+    max-width: unset;
+    margin-bottom: 0;
+    position: relative;
+  }
+  .step-circle {
+    margin-bottom: 0;
+    margin-right: 1.5rem;
+    margin-left: 0.5rem;
+  }
+  .step-info {
+    text-align: left;
+    margin-top: 0.2rem;
+  }
+  /* Mobile: vertical connector */
+  .steps-horizontal .step-horizontal:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 32px; /* Center of the circle (48px/2 + 4px border) */
+    top: 56px;  /* Just below the circle (48px + 4px border + 4px gap) */
+    width: 4px;
+    height: calc(100% - 56px);
+    background: #4caf8e;
+    z-index: 0;
+    border-radius: 2px;
+  }
+}

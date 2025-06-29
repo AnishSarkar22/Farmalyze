@@ -166,7 +166,7 @@ const LandingPage = () => {
       <div className="how-it-works">
         <div className="container">
           <h2 className="section-title">How It Works</h2>
-          <div className="steps-container">
+          <div className="steps-horizontal">
             {[
               {
                 number: 1,
@@ -188,18 +188,14 @@ const LandingPage = () => {
                 title: "Implement & Improve",
                 desc: "Apply recommendations and track your results over time."
               }
-            ].map((step, index, array) => (
-              <div key={step.number} className="step-wrapper">
-                <div className="step">
-                  <div className="step-number">{step.number}</div>
+            ].map((step) => (
+              <div key={step.number} className="step-horizontal">
+                <div className="step-circle">{step.number}</div>
+                <div className="step-info">
                   <h3 className="step-title">{step.title}</h3>
                   <p className="step-desc">{step.desc}</p>
                 </div>
-                {index < array.length - 1 && (
-                  <div className="step-connector">
-                    <div className="connector-line"></div>
-                  </div>
-                )}
+               
               </div>
             ))}
           </div>
