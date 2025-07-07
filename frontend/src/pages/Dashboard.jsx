@@ -286,6 +286,13 @@ const Dashboard = () => {
             forecast: "Please enable location access",
             windSpeed: "--m/s",
           });
+          setLoadingStates((prev) => {
+            const newState = { ...prev, weather: false };
+            if (!newState.weather && !newState.activities && !newState.tips) {
+              setIsDashboardLoading(false);
+            }
+            return newState;
+          });
         }
       );
     } else {
@@ -296,6 +303,13 @@ const Dashboard = () => {
         rainfall: "--mm",
         forecast: "Weather data unavailable",
         windSpeed: "--m/s",
+      });
+      setLoadingStates((prev) => {
+        const newState = { ...prev, weather: false };
+        if (!newState.weather && !newState.activities && !newState.tips) {
+          setIsDashboardLoading(false);
+        }
+        return newState;
       });
     }
   }, []);
