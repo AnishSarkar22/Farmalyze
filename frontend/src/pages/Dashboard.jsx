@@ -451,8 +451,9 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Chatbot Card */}
-          <div className="dashboard-card chatbot-card">
+          {/* CHATBOT CARD */}
+
+          {/* <div className="dashboard-card chatbot-card">
             <h2 className="card-title">Farm Assistant</h2>
             <div className="chatbot-container">
               <div className="chat-messages">
@@ -462,7 +463,7 @@ const Dashboard = () => {
                     Hello! I'm your farming assistant. How can I help you today?
                   </p>
                 </div>
-                {/* Placeholder for future message history */}
+                 // Placeholder for future message history
               </div>
               <div className="chat-input">
                 <input
@@ -494,7 +495,7 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Recent Activities card */}
           <div className="dashboard-card activity-card">
