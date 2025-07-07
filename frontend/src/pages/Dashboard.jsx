@@ -95,7 +95,7 @@ const Dashboard = () => {
         setLoadingStates((prev) => {
           const newState = { ...prev, activities: false };
           // Check if all components are loaded
-          if (!newState.weather && !newState.activities) {
+          if (!newState.weather && !newState.activities && !newState.tips) {
             setIsDashboardLoading(false);
           }
           return newState;
@@ -225,7 +225,9 @@ const Dashboard = () => {
       setIsWeatherLoading(true);
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/weather?lat=${position.latitude}&lon=${position.longitude}`
+          `${import.meta.env.VITE_API_URL}/api/weather?lat=${
+            position.latitude
+          }&lon=${position.longitude}`
         );
 
         if (response.ok) {
@@ -257,7 +259,7 @@ const Dashboard = () => {
         setLoadingStates((prev) => {
           const newState = { ...prev, weather: false };
           // Check if all components are loaded
-          if (!newState.weather && !newState.activities) {
+          if (!newState.weather && !newState.activities && !newState.tips) {
             setIsDashboardLoading(false);
           }
           return newState;
