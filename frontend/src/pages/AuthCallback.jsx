@@ -1,39 +1,54 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../config/supabase.js';
+import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { handleGoogleCallback } from "../utils/auth";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    const handleCallback = async () => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
+    const processCallback = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) throw error;
-        
-        if (session?.user) {
-          await login(session.user);
-          navigate('/dashboard');
+        // console.log("window.location.search:", window.location.search);
+        // const urlParams = new URLSearchParams(window.location.search);
+        // for (const [key, value] of urlParams.entries()) {
+        //   console.log(`Param: ${key} = ${value}`);
+        // }
+        const token = handleGoogleCallback();
+        // console.log("Token from handleGoogleCallback:", token);
+        if (token) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          await login();
+          navigate("/dashboard");
         } else {
-          navigate('/login');
+          throw new Error("No token received");
         }
       } catch (error) {
-        console.error('Auth callback error:', error);
-        navigate('/login');
+        // console.error("Auth callback error:", error);
+        navigate("/login?error=" + encodeURIComponent(error.message));
       }
     };
-
-    handleCallback();
+    processCallback();
   }, [navigate, login]);
 
+
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <p>Setting up your account...</p>
-      </div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        flexDirection: "column",
+      }}
+    >
+      <div>Processing authentication...</div>
+      <div style={{ marginTop: "20px" }}>Please wait...</div>
     </div>
   );
 };

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { AlertCircle, Tractor, Check } from "lucide-react";
 import "../styles/Form.css";
 import { state_arr, s_a } from "../utils/cities.js";
-import { supabase } from "../config/supabase.js";
+import { useAuth } from "../context/AuthContext";
+import { createActivity, createCropActivityData } from '../utils/activityHelpers';
 
 const CropRecommendation = () => {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ const CropRecommendation = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [session, setSession] = useState(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     // Create state dropdown when component mounts
@@ -35,17 +36,6 @@ const CropRecommendation = () => {
     }
   }, []);
 
-  useEffect(() => {
-    // Fetch session when component mounts
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-    };
-
-    getSession();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -76,36 +66,19 @@ const CropRecommendation = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  setLoading(true);
+  setResult(null);
+  setError("");
 
-    if (!session) {
-      setError("Please login to continue");
-      return;
-    }
-
-    // Validate form inputs
-    if (
-      !formData.nitrogen ||
-      !formData.phosphorus ||
-      !formData.potassium ||
-      !formData.ph ||
-      !formData.rainfall ||
-      !formData.state ||
-      !formData.city
-    ) {
-      setError("Please fill in all fields");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/crop-predict`, {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/crop-predict`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${token}`, // Use token from AuthContext
         },
         body: JSON.stringify({
           nitrogen: formData.nitrogen,
@@ -115,102 +88,32 @@ const CropRecommendation = () => {
           rainfall: formData.rainfall,
           city: formData.city,
         }),
-      });
-
-      const data = await response.json();
-
-      // console.log("API Response:", data);
-
-      if (data.success) {
-        // Get the crop name from either primary_recommendation or prediction
-        const recommendedCrop = data.primary_recommendation || data.prediction;
-
-        // Create a properly formatted recommendations array for storage
-        const recommendationsToStore = Array.isArray(data.recommendations)
-          ? data.recommendations
-          : Array.isArray(data.alternatives)
-          ? data.alternatives.map((alt) => ({
-              crop: alt.name,
-              confidence: alt.confidence,
-            }))
-          : [{ crop: recommendedCrop, confidence: 0 }];
-
-        // Store activity in Supabase
-        await supabase.from("user_activities").insert({
-          user_id: session.user.id,
-          activity_type: "crop",
-          title: `Crop Recommendation for ${formData.city}`,
-          result: `Recommended crop: ${recommendedCrop || "Not available"}`,
-          details: {
-            conditions: data.conditions,
-            recommendations: recommendationsToStore,
-            alternatives: Array.isArray(data.alternatives)
-              ? data.alternatives
-              : [],
-          },
-        });
-
-        // Check if recommendations array exists before trying to use find()
-        let confidence = 0;
-
-        // First attempt to get confidence from recommendations if they exist
-        if (Array.isArray(data.recommendations)) {
-          const mainRecommendation = data.recommendations.find(
-            (rec) =>
-              rec.crop === (data.primary_recommendation || data.prediction)
-          );
-          confidence = mainRecommendation?.confidence || 0;
-        }
-        // If no recommendations or confidence found, use alternatives if they exist
-        else if (
-          Array.isArray(data.alternatives) &&
-          data.alternatives.length > 0
-        ) {
-          confidence = data.alternatives[0].confidence || 0;
-        }
-
-        setResult({
-          recommendedCrop: {
-            name: data.primary_recommendation || data.prediction,
-            confidence: confidence,
-            description: `Based on your soil parameters and weather conditions in ${
-              formData.city
-            }, ${
-              data.primary_recommendation || data.prediction
-            } is recommended as the best crop for your farm.`,
-          },
-          alternatives: Array.isArray(data.recommendations)
-            ? data.recommendations
-                .filter(
-                  (rec) =>
-                    rec.crop !==
-                    (data.primary_recommendation || data.prediction)
-                )
-                .map((rec) => ({
-                  name: rec.crop,
-                  confidence: rec.confidence || 0,
-                  reason: `Alternative crop option based on your soil parameters and local weather conditions.`,
-                }))
-            : Array.isArray(data.alternatives)
-            ? data.alternatives
-            : [],
-          conditions: data.conditions,
-          soilHealth: data.conditions.soil_health,
-          soilHealthDescription: `Your soil parameters indicate ${data.conditions.soil_health.toLowerCase()} growing conditions. The current temperature is ${
-            data.conditions.temperature
-          }°C with ${data.conditions.humidity}% humidity.`,
-        });
-      } else {
-        setError(data.error || "Failed to get prediction");
-        console.error("Invalid API response structure:", data);
       }
-    } catch (err) {
-      setError("Failed to connect to the server");
-      console.error("Error:", err);
-    } finally {
-      setLoading(false);
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      setResult(data);
+
+      // Create activity using helper function
+      try {
+        const activityData = createCropActivityData(formData, data);
+        await createActivity(activityData, token);
+      } catch (activityError) {
+        console.error("Error saving activity:", activityError);
+        // Don't fail the main operation if activity saving fails
+      }
+    } else {
+      setError(data.error || "Failed to get crop recommendation");
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+    setError("An error occurred. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="form-page">
@@ -390,27 +293,31 @@ const CropRecommendation = () => {
                   <h3>Recommended Crop</h3>
                   <div className="crop-recommendation-primary">
                     <div className="crop-name">
-                      {result.recommendedCrop.name}
+                      {result.recommendedCrop?.name || result.prediction}
                     </div>
 
-                    {/* :TODO: confidence bar and percentage to be done later */}
-                    {/* <div className="crop-confidence">
-                      <div className="confidence-bar">
-                        <div
-                          className="confidence-fill"
-                          style={{
-                            width: `${result.recommendedCrop.confidence}%`,
-                          }}
-                        ></div>
+                    {/* // TODO: confidence bar and percentage to be done later */}
+                     {/* {result.recommendedCrop?.confidence && (
+                      <div className="crop-confidence">
+                        <div className="confidence-bar">
+                          <div
+                            className="confidence-fill"
+                            style={{
+                              width: `${result.recommendedCrop.confidence}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <span>{result.recommendedCrop.confidence}% Match</span>
                       </div>
-                      <span>{result.recommendedCrop.confidence}% Match</span>
-                    </div> */}
+                    )} */}
                     <p className="crop-description">
-                      {result.recommendedCrop.description}
+                      {result.recommendedCrop?.description || 
+                       `${result.prediction} is suitable for your soil and climate conditions.`}
                     </p>
                   </div>
                 </div>
-
+                
+                {result.alternatives && result.alternatives.length > 0 && (
                 <div className="alternative-crops">
                   <h3>Alternative Options</h3>
                   <div className="alternatives-list">
@@ -441,13 +348,14 @@ const CropRecommendation = () => {
                       ))}
                   </div>
                 </div>
+                )}
 
                 <div className="soil-health">
                   <h3>Soil Health Assessment</h3>
                   <div className="soil-health-rating">
                     <span className="health-label">Health:</span>
                     <span
-                      className={`health-value health-${result.soilHealth.toLowerCase()}`}
+                      className={`health-value health-${(result.soilHealth).toLowerCase()}`}
                     >
                       {result.soilHealth}
                     </span>

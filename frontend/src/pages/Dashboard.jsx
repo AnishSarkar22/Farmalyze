@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { supabase } from "../config/supabase.js";
 import parse from "html-react-parser";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -24,7 +23,7 @@ import {
 import "../styles/Dashboard.css";
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, token } = useAuth();
   const [userName, setUserName] = useState("User");
   const [recentActivities, setRecentActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,28 +43,28 @@ const Dashboard = () => {
   });
   const ACTIVITIES_PER_PAGE = 10;
 
+  // Fetch user activities from backend
   useEffect(() => {
     const fetchUserActivities = async () => {
-      if (!currentUser) return;
+      if (!currentUser || !token) return;
 
       try {
         setIsLoading(true);
 
-        const from = (currentPage - 1) * ACTIVITIES_PER_PAGE;
-        const to = from + ACTIVITIES_PER_PAGE - 1;
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/activities?page=${currentPage}&limit=${ACTIVITIES_PER_PAGE}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-        const { data, error, count } = await supabase
-          .from("user_activities")
-          .select("*", { count: "exact" })
-          .eq("user_id", currentUser.id)
-          .order("created_at", { ascending: false })
-          .range(from, to);
-
-        if (error) throw error;
-
-        if (data) {
-          setRecentActivities((current) => {
-            const newActivities = data.map((activity) => ({
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            const newActivities = data.activities.map((activity) => ({
               id: activity.id,
               type: activity.activity_type,
               title: activity.title,
@@ -75,26 +74,29 @@ const Dashboard = () => {
               details: activity.details,
             }));
 
-            // Create a Set of existing IDs
-            const existingIds = new Set(current.map((activity) => activity.id));
+            if (currentPage === 1) {
+              // Reset activities for first page
+              setRecentActivities(newActivities);
+            } else {
+              // Append for subsequent pages
+              setRecentActivities((current) => {
+                const existingIds = new Set(current.map((activity) => activity.id));
+                const uniqueNewActivities = newActivities.filter(
+                  (activity) => !existingIds.has(activity.id)
+                );
+                return [...current, ...uniqueNewActivities];
+              });
+            }
 
-            // Filter out any duplicates
-            const uniqueNewActivities = newActivities.filter(
-              (activity) => !existingIds.has(activity.id)
-            );
-
-            return [...current, ...uniqueNewActivities];
-          });
-          setHasMoreActivities(count > currentPage * ACTIVITIES_PER_PAGE);
+            setHasMoreActivities(data.pagination.has_more);
+          }
         }
       } catch (error) {
         console.error("Error fetching user activities:", error);
       } finally {
         setIsLoading(false);
-        // Update unified loading state
         setLoadingStates((prev) => {
           const newState = { ...prev, activities: false };
-          // Check if all components are loaded
           if (!newState.weather && !newState.activities && !newState.tips) {
             setIsDashboardLoading(false);
           }
@@ -104,77 +106,72 @@ const Dashboard = () => {
     };
 
     fetchUserActivities();
-  }, [currentUser, currentPage]);
+  }, [currentUser, token, currentPage]);
 
-  // for real-time updates from supabase database
+  // Polling for real-time updates (replaced Supabase real-time)
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !token) return;
 
-    // Subscribe to changes
-    const subscription = supabase
-      .channel("user_activities_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "user_activities",
-          filter: `user_id=eq.${currentUser.id}`,
-        },
-        (payload) => {
-          // Add new activity to list
-          setRecentActivities((current) => {
-            const newActivity = {
-              id: payload.new.id,
-              type: payload.new.activity_type,
-              title: payload.new.title,
-              date: payload.new.created_at,
-              status: payload.new.status,
-              result: payload.new.result,
-              details: payload.new.details,
-            };
+    const pollForUpdates = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/activities?page=1&limit=5`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-            // Check if activity with this ID already exists
-            const exists = current.some(
-              (activity) => activity.id === newActivity.id
-            );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.activities.length > 0) {
+            const latestActivities = data.activities.map((activity) => ({
+              id: activity.id,
+              type: activity.activity_type,
+              title: activity.title,
+              date: activity.created_at,
+              status: activity.status,
+              result: activity.result,
+              details: activity.details,
+            }));
 
-            // If activity already exists, don't add it
-            if (exists) {
+            setRecentActivities((current) => {
+              if (current.length === 0) return latestActivities;
+              
+              const existingIds = new Set(current.map((activity) => activity.id));
+              const newActivities = latestActivities.filter(
+                (activity) => !existingIds.has(activity.id)
+              );
+
+              if (newActivities.length > 0) {
+                return [
+                  ...newActivities,
+                  ...current.slice(0, Math.max(0, ACTIVITIES_PER_PAGE - newActivities.length))
+                ];
+              }
+
               return current;
-            }
-
-            // Add new activity at the beginning of the list
-            return [newActivity, ...current];
-          });
+            });
+          }
         }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
+      } catch (error) {
+        console.error("Error polling for updates:", error);
+      }
     };
-  }, [currentUser]);
 
-  // for fetching farming tips
+    // Poll every 30 seconds for new activities
+    const interval = setInterval(pollForUpdates, 30000);
+
+    return () => clearInterval(interval);
+  }, [currentUser, token]);
+
+  // Fetch farming tips with existing fallback implementation
   useEffect(() => {
     const fetchFarmingTips = async () => {
       setIsTipsLoading(true);
       try {
-        // Fetch tips from Supabase
-        const { data, error } = await supabase
-          .from("farming_tips")
-          .select("*")
-          .order("id", { ascending: true });
-
-        if (error) throw error;
-
-        if (data) {
-          setFarmingTips(data);
-        }
-      } catch (error) {
-        console.error("Error fetching farming tips:", error);
-        // Fallback tips if fetching fails
         setFarmingTips([
           {
             id: 1,
@@ -194,13 +191,25 @@ const Dashboard = () => {
             content:
               "Plan your crop rotation to maximize soil nutrients and minimize pest pressure.",
           },
+          {
+            id: 4,
+            title: "Pest Management",
+            content:
+              "Implement integrated pest management (IPM) strategies to reduce pesticide dependency.",
+          },
+          {
+            id: 5,
+            title: "Crop Diversification",
+            content:
+              "Grow different crops to improve soil health and reduce risk of total crop failure.",
+          },
         ]);
+      } catch (error) {
+        console.error("Error loading farming tips:", error);
       } finally {
         setIsTipsLoading(false);
-        // Update unified loading state
         setLoadingStates((prev) => {
           const newState = { ...prev, tips: false };
-          // Check if all components are loaded
           if (!newState.weather && !newState.activities && !newState.tips) {
             setIsDashboardLoading(false);
           }
@@ -314,13 +323,28 @@ const Dashboard = () => {
     }
   }, []);
 
+   // Fetch username from backend using JWT
   useEffect(() => {
-    // Set user name from Supabase user data
-    if (currentUser?.user_metadata?.full_name) {
-      const firstName = currentUser.user_metadata.full_name.split(" ")[0];
-      setUserName(firstName);
-    }
-  }, [currentUser]);
+    const fetchUserName = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/username`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await res.json();
+        if (data.success && data.name) {
+          setUserName(data.name.split(" ")[0]); // Use first name
+        }
+      } catch {
+        // fallback to default
+        setUserName("User");
+      }
+    };
+    fetchUserName();
+  }, [token]);
 
   return (
     <div className="dashboard-container">

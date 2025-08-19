@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { AlertCircle, Upload, Microscope, Check, X } from "lucide-react";
 import "../styles/Form.css";
 import "../styles/DiseaseDetection.css";
-import { supabase } from "../config/supabase.js";
+import { createActivity, createDiseaseActivityData } from '../utils/activityHelpers';
+import { useAuth } from "../context/AuthContext";
+
 
 const DiseaseDetection = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -11,19 +13,8 @@ const DiseaseDetection = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    // Fetch session when component mounts
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-    };
-
-    getSession();
-  }, []);
+  const { token } = useAuth();
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -84,7 +75,6 @@ const DiseaseDetection = () => {
     setLoading(true);
     setError("");
 
-    // Create form data
     const formData = new FormData();
     formData.append("file", selectedImage);
 
@@ -93,6 +83,9 @@ const DiseaseDetection = () => {
         `${import.meta.env.VITE_API_URL}/api/disease-predict`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // Use token from AuthContext
+          },
           body: formData,
         }
       );
@@ -104,30 +97,22 @@ const DiseaseDetection = () => {
       }
 
       if (data.success) {
-        // Store activity in Supabase
-        await supabase.from("user_activities").insert({
-          user_id: session.user.id,
-          activity_type: "disease",
-          title: `Disease Detection Analysis`,
-          result: data.prediction,
-          details: {
-            disease_info: data.disease_info,
-          },
-        });
+        setResult(data);
 
-        setResult({
-          diseaseName: data.prediction,
-          // confidence: 95, // Add confidence if available from API
-          description: data.disease_info,
-          symptoms: ["View detailed symptoms on disease info section"],
-          treatments: ["View treatment options on disease info section"],
-          preventiveMeasures: [
-            "View prevention measures on disease info section",
-          ],
-        });
+        // Create activity using helper function
+        try {
+          const activityData = createDiseaseActivityData(data);
+          await createActivity(activityData, token);
+        } catch (activityError) {
+          console.error("Error saving activity:", activityError);
+          // Don't fail the main operation if activity saving fails
+        }
+      } else {
+        setError(data.error || "Failed to detect disease");
       }
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error("Error:", error);
+      setError(error.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -241,8 +226,8 @@ const DiseaseDetection = () => {
 
                 <div className="disease-info">
                   <div className="disease-header">
-                    <h3 className="disease-name">{result.diseaseName}</h3>
-                    {/* :TODO: This section adds a prediction bar that displays the accuracy of the ML model (confidence)*/}
+                    <h3 className="disease-name">{result.prediction}</h3>
+                    {/* // TODO: This section adds a prediction bar that displays the accuracy of the ML model (confidence) */}
                     {/* <div className="disease-confidence">
                       <div className="confidence-bar">
                         <div 
@@ -254,7 +239,7 @@ const DiseaseDetection = () => {
                     </div> */}
                   </div>
 
-                  <p className="disease-description">{result.description}</p>
+                  <p className="disease-description">{result.disease_info || "No additional info available."}</p>
 
                   {/* <div className="disease-details">
                     <div className="detail-section">

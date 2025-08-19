@@ -1,102 +1,115 @@
-import { supabase } from "../config/supabase";
+export async function loginWithEmail(email, password) {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.msg || 'Login failed');
+  // Save JWT to localStorage
+  if (data.access_token) localStorage.setItem('jwt', data.access_token);
+  return data;
+}
 
-export const signInWithEmail = async (email, password) => {
+export async function signupWithEmail(name, email, password) {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ name, email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.msg || 'Signup failed');
+  return data;
+}
+
+export async function logoutJWT() {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-
-    // Sync session with backend
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ session: data.session }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to sync session with backend");
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Authorization": `Bearer ${jwt}`,
+        },
+      });
     }
-
-    return data;
-  } catch (error) {
-    console.error("Auth error:", error);
-    throw error;
+  } catch {
+    // Ignore errors, proceed to remove JWT
+    // console.error("Backend logout failed:", err);
   }
-};
-
-export const signUpWithEmail = async (email, password, metadata) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: metadata },
-  });
-  if (error) throw error;
-
-  if (data.session) {
-    // Store session in backend cookie for auto-sign-in after email verification
-    await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ session: data.session }),
-    });
-  }
-
-  return data;
-};
-
-export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-      queryParams: {
-        access_type: "offline",
-        prompt: "consent",
-      },
-    },
-  });
-
-  if (error) throw error;
-  return data;
-};
-
-export const signOut = async () => {
-  // Clear backend session first
-  await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-
-  // Then sign out from Supabase
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-};
+  localStorage.removeItem('jwt');
+}
 
 export const getCurrentSession = async () => {
-  // Try to get session from backend first
+  // Get session from backend using JWT
   try {
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) {
+      return null; // No JWT available
+    }
+
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
       credentials: "include",
+      headers: {
+        "Authorization": `Bearer ${jwt}`,
+      },
     });
+    
+    if (!response.ok) {
+      // JWT might be expired or invalid
+      localStorage.removeItem('jwt');
+      return null;
+    }
+    
     const data = await response.json();
-    if (data.session) return data.session;
+    return data.session || null;
   } catch (err) {
     console.error("Failed to get session from backend:", err);
+    return null;
   }
-
-  // Fallback to Supabase session
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-  if (error) throw error;
-  return session;
 };
+
+export async function initiateGoogleLogin() {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        frontend_url: window.location.origin
+      }),
+    });
+    
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to initiate Google login');
+    
+    // Open Google OAuth in same window
+    window.location.href = data.auth_url;
+    
+    return data;
+  } catch (error) {
+    console.error('Google login error:', error);
+    throw error;
+  }
+}
+
+export function handleGoogleCallback() {
+  // Extract token from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  const success = urlParams.get('success');
+  const error = urlParams.get('error');
+  
+  if (error) {
+    throw new Error(error);
+  }
+  
+  if (success === 'true' && token) {
+    localStorage.setItem('jwt', token);
+    return token;
+  }
+  
+  return null;
+}

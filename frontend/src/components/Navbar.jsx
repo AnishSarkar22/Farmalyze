@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { logoutJWT } from "../utils/auth";
 import {
   Menu,
   X,
@@ -38,8 +39,9 @@ const Navbar = () => {
     };
   }, [scrolled]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
+      await logoutJWT(); // Call backend + clear JWT
       logout(); // Clear local auth context
       navigate("/");
     } catch (error) {

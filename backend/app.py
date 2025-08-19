@@ -1,7 +1,8 @@
 # updated crop disease detection model using huggingface https://huggingface.co/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification model
+
 import os
-import json
-from flask import Flask, jsonify, make_response, request
+from datetime import timedelta
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import requests
 import numpy as np
@@ -10,23 +11,19 @@ import pickle
 import io
 import torch
 from datetime import datetime
-from torchvision import transforms
-# from supabase import create_client, Client
+# from torchvision import transforms
 from utils.fertilizer import fertilizer_dic
 from utils.disease import disease_dic
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 from PIL import Image
+from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 
-import threading
-import time
+from auth.auth import auth_bp
+from auth.google_oauth import oauth_bp, init_oauth
+from activities.activities import activities_bp
 
 load_dotenv()
-
-# supabase: Client = create_client(
-#     os.getenv("SUPABASE_URL"),
-#     os.getenv("SUPABASE_KEY")
-# )
 
 # -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
 
@@ -147,9 +144,35 @@ CORS(app, resources={
     }
 })
 
+app.config['JWT_SECRET_KEY'] = 'asdasdih8393r2hubyefhwiu32qewdls iuoei8q239wuei'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
 app.config['JSON_SORT_KEYS'] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['CORS_SUPPORTS_CREDENTIALS'] = True
+
+# for JWT authentication
+jwt = JWTManager(app)
+google_oauth = init_oauth(app) # initialize oauth
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(oauth_bp)
+app.register_blueprint(activities_bp)
+
+@app.after_request
+def set_security_headers(response):
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "frame-ancestors 'none';"
+    )
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
 
 # ===============================================================================================
 # TEST ROUTES
@@ -176,67 +199,6 @@ def get_version():
     return jsonify({
         'python_version': sys.version
     })
-
-# test supabase connection
-# @app.route("/api/test-connection")
-# def test_connection():
-#     try:        
-#         return jsonify({
-#             'status': 'success',
-#             'message': 'Successfully connected to Supabase',
-#             'timestamp': datetime.now().isoformat(),
-#             'connection': 'online'
-#         }), 200
-        
-#     except Exception as e:
-#         return jsonify({
-#             'status': 'error',
-#             'message': 'Failed to connect to Supabase',
-#             'error': str(e),
-#             'connection': 'offline'
-#         }), 500
-
-
-# ===============================================================================================
-
-# routes to handle session storage
-@app.route('/api/auth/session', methods=['GET', 'POST', 'DELETE'])
-def handle_session():
-    if request.method == 'GET':
-        try:
-            # Get session from secure cookie
-            session = request.cookies.get('sb-auth-token')
-            if not session:
-                return jsonify({'session': None}), 200
-            
-            parsed_session = json.loads(session)
-            return jsonify({'session': parsed_session}), 200
-        except json.JSONDecodeError:
-            return jsonify({
-                'error': 'Invalid session format',
-                'session': None
-            }), 400
-        
-    elif request.method == 'POST':
-        # Store session in secure cookie
-        data = request.json
-        response = make_response(jsonify({'success': True}))
-        response.set_cookie(
-            'sb-auth-token',
-            json.dumps(data['session']),
-            httponly=True,
-            secure=True,
-            samesite='None',
-            max_age=7 * 24 * 60 * 60  # 7 days
-        )
-        return response
-
-    elif request.method == 'DELETE':
-        # Clear session cookie
-        response = make_response(jsonify({'success': True}))
-        response.delete_cookie('sb-auth-token')
-        return response
-
 
 # ===============================================================================================
 # FETCH DATA ROUTES
@@ -362,7 +324,6 @@ def api_disease_prediction():
 
 # render crop recommendation result page
 @app.route('/api/crop-predict', methods=['POST'])
-# @login_required
 def api_crop_prediction():
     try:
         data = request.get_json()
@@ -393,6 +354,25 @@ def api_crop_prediction():
             primary_crop = top_crops[0]
             primary_confidence = top_probabilities[0]
             
+            # Create crop descriptions (you can expand this dictionary)
+            crop_descriptions = {
+                'rice': 'Rice is ideal for areas with high rainfall and humidity. It requires flooded fields and warm temperatures.',
+                'wheat': 'Wheat grows best in cooler climates with moderate rainfall. It prefers well-drained soils.',
+                'cotton': 'Cotton requires a long growing season with plenty of sunshine and moderate rainfall.',
+                'sugarcane': 'Sugarcane thrives in tropical and subtropical climates with high temperatures and rainfall.',
+                'maize': 'Maize (corn) grows well in warm weather with adequate moisture and fertile soil.',
+                'coffee': 'Coffee plants prefer tropical highlands with consistent rainfall and temperatures.',
+                # Add more crops as needed
+            }
+            
+            # Get soil health assessment
+            soil_health = 'Excellent' if (6.5 <= ph <= 7.0) else ('Good' if (6.0 <= ph <= 7.5) else 'Fair')
+            soil_health_descriptions = {
+                'Excellent': 'Your soil pH is optimal for most crops. The nutrient levels support healthy plant growth.',
+                'Good': 'Your soil conditions are suitable for farming with minor adjustments needed.',
+                'Fair': 'Your soil may need some amendments to improve crop yield. Consider pH adjustment and nutrient supplementation.'
+            }
+            
             # Create list of recommendations with probabilities
             recommendations = [
                 {"crop": crop, "confidence": prob} 
@@ -404,50 +384,55 @@ def api_crop_prediction():
                 {
                     "name": crop, 
                     "confidence": prob,
-                    "reason": f"Alternative crop option based on your soil parameters and local weather conditions."
+                    "reason": f"Alternative crop option with {prob}% suitability based on your soil parameters and local weather conditions."
                 } 
                 for crop, prob in zip(top_crops[1:], top_probabilities[1:])
             ]
-            
-            # Soil conditions summary
-            soil_conditions = {
-                "nitrogen": N,
-                "phosphorus": P,
-                "potassium": K,
-                "ph": ph,
-                "rainfall": rainfall,
-                "temperature": temperature,
-                "humidity": humidity
-            }
             
             # Return response in the format expected by the frontend
             return jsonify({
                 'success': True,
                 'prediction': primary_crop,
                 'primary_recommendation': primary_crop,
+                'recommendedCrop': {
+                    'name': primary_crop.title(),
+                    'confidence': primary_confidence,
+                    'description': crop_descriptions.get(primary_crop.lower(), 
+                        f'{primary_crop.title()} is suitable for your soil and climate conditions.')
+                },
                 'recommendations': recommendations,
                 'alternatives': alternatives,
+                'soilHealth': soil_health,
+                'soilHealthDescription': soil_health_descriptions[soil_health],
                 'conditions': {
                     'temperature': temperature,
                     'humidity': humidity,
-                    'soil_health': 'Good' if (6.0 <= ph <= 7.5) else 'Fair',
+                    'soil_health': soil_health,
                     'location': city
                 },
-                'soil_data': soil_conditions
+                'soil_data': {
+                    'nitrogen': N,
+                    'phosphorus': P,
+                    'potassium': K,
+                    'ph': ph,
+                    'rainfall': rainfall,
+                    'temperature': temperature,
+                    'humidity': humidity
+                }
             }), 200
         else:
             return jsonify({
                 'success': False,
-                'error': 'Could not fetch weather data'
+                'error': 'Could not fetch weather data for the specified city'
             }), 400
 
     except Exception as e:
-        print(f"Error in crop prediction: {str(e)}")  # Add server-side logging
+        print(f"Error in crop prediction: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 400
-        
+
 # render fertilizer suggestion result page
 @app.route('/api/fertilizer-predict', methods=['POST'])
 # @login_required

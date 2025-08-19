@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AlertCircle, Droplets, Check } from "lucide-react";
 import parse from "html-react-parser";
-import { supabase } from "../config/supabase.js";
+import { createActivity, createFertilizerActivityData } from '../utils/activityHelpers';
+import { useAuth } from "../context/AuthContext";
 
 import "../styles/Form.css";
 
@@ -16,7 +17,7 @@ const FertilizerRecommendation = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [session, setSession] = useState(null);
+  const { token } = useAuth();
 
   const cropTypes = [
     "rice",
@@ -59,18 +60,6 @@ const FertilizerRecommendation = () => {
   //   return { title: title.trim(), suggestions };
   // };
 
-  useEffect(() => {
-    // Fetch session when component mounts
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-    };
-
-    getSession();
-  }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -78,8 +67,10 @@ const FertilizerRecommendation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setResult(null);
+    setError("");
 
-    // Validate form inputs
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/fertilizer-predict`,
@@ -87,6 +78,7 @@ const FertilizerRecommendation = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Use token from AuthContext
           },
           body: JSON.stringify(formData),
         }
@@ -95,26 +87,22 @@ const FertilizerRecommendation = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Store activity in Supabase
-        await supabase.from("user_activities").insert({
-          user_id: session.user.id,
-          activity_type: "fertilizer",
-          title: `Fertilizer Analysis for ${formData.cropname}`,
-          result: data.recommendation,
-          details: {
-            nitrogen: formData.nitrogen,
-            phosphorus: formData.phosphorus,
-            potassium: formData.potassium,
-          },
-        });
-        setResult(data);
+        setResult(data.recommendation);
+
+        // Create activity using helper function
+        try {
+          const activityData = createFertilizerActivityData(formData, data.recommendation);
+          await createActivity(activityData, token);
+        } catch (activityError) {
+          console.error("Error saving activity:", activityError);
+          // Don't fail the main operation if activity saving fails
+        }
       } else {
-        setError(data.error || "Failed to get recommendation");
+        setError(data.error || "Failed to get fertilizer recommendation");
       }
-    } catch (err) {
-      setError(`Failed to connect to the server: ${err.message}`);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Error:", error);
+      setError("An error occurred. Please try again.");
     }
   };
 
@@ -235,27 +223,11 @@ const FertilizerRecommendation = () => {
               </div>
               <div className="result-main">
                 <div className="recommendation-content">
-                  {parse(result.recommendation, {
-                    replace: (domNode) => {
-                      if (domNode.name === "br") {
-                        return <br />;
-                      }
-                      if (domNode.name === "b") {
-                        return (
-                          <strong className="highlight-text">
-                            {domNode.children[0].data}
-                          </strong>
-                        );
-                      }
-                      if (domNode.name === "i") {
-                        return (
-                          <em className="emphasis-text">
-                            {domNode.children[0].data}
-                          </em>
-                        );
-                      }
-                    },
-                  })}
+                  {typeof result === "string"
+                    ? parse(result)
+                    : result && typeof result.recommendation === "string"
+                      ? parse(result.recommendation)
+                      : null}
                 </div>
               </div>
               <div className="result-actions">

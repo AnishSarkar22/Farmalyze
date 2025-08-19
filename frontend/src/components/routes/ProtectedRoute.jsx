@@ -1,35 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-// import { supabase } from '../../config/supabase';
 import Navbar from '../Navbar';
 
 const ProtectedRoute = () => {
-  const { currentUser, loading, login } = useAuth();
-  const [verifying, setVerifying] = useState(true);
+  const { currentUser, loading } = useAuth();
 
-  useEffect(() => {
-    const verifyAuth = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
-          credentials: 'include'
-        });
-        const data = await response.json();
-        
-        if (!currentUser && data.session?.user) {
-          await login(data.session.user);
-        }
-      } catch (error) {
-        console.error('Auth verification error:', error);
-      } finally {
-        setVerifying(false);
-      }
-    };
-
-    verifyAuth();
-  }, [currentUser, login]);
-
-  if (loading || verifying) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 

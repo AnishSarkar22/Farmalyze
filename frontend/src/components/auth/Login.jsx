@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { AlertCircle } from 'lucide-react';
-import { signInWithEmail, signInWithGoogle } from '../../utils/auth';
+import { loginWithEmail, initiateGoogleLogin } from '../../utils/auth';
 import '../../styles/Auth.css';
 import FarmalyzeIcon from '../../assets/farmalyze-icon.svg';
 
@@ -25,11 +25,15 @@ const Login = () => {
     try {
       setError('');
       setLoading(true);
-      
-      const { user } = await signInWithEmail(email, password);
-      
-      if (user) {
-        await login(user);
+
+      const data = await loginWithEmail(email, password);
+      if (data.access_token) {
+        // Store token first
+        localStorage.setItem('jwt', data.access_token);
+        // Wait a bit to ensure localStorage is updated
+        await new Promise(resolve => setTimeout(resolve, 100));
+        // Then verify session
+        await login();
         navigate('/dashboard');
       }
     } catch (err) {
@@ -43,11 +47,12 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       setError('');
-      await signInWithGoogle();
-      // Auth callback will handle the redirect
+      setLoading(true);
+      await initiateGoogleLogin();
+      // The page will redirect to Google, so no need to handle response here
     } catch (err) {
-      setError('Failed to sign in with Google');
-      console.error(err);
+      setError(err.message || 'Failed to initiate Google login');
+      setLoading(false);
     }
   };
 
@@ -109,6 +114,7 @@ const Login = () => {
             type="button" 
             className="btn btn-google auth-submit" 
             onClick={handleGoogleLogin}
+            disabled={loading}
           >
             <img 
               src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg" 

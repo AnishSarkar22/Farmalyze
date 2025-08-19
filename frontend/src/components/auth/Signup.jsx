@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // import { useAuth } from '../../context/AuthContext';
 import { Plane, AlertCircle } from 'lucide-react';
-import { signUpWithEmail, signInWithGoogle } from '../../utils/auth';
+import { signupWithEmail, initiateGoogleLogin } from '../../utils/auth';
 import '../../styles/Auth.css';
 import FarmalyzeIcon from '../../assets/farmalyze-icon.svg';
 
@@ -37,16 +37,12 @@ const Signup = () => {
     try {
       setError('');
       setLoading(true);
-      
-      const { user } = await signUpWithEmail(email, password, {
-        full_name: name
+
+      await signupWithEmail(name, email, password);
+
+      navigate('/login', {
+        state: { message: 'Account created! Please log in.' }
       });
-      
-      if (user) {
-        navigate('/login', { 
-          state: { message: 'Please check your email to verify your account' } 
-        });
-      }
     } catch (err) {
       setError(err.message || 'Failed to create account');
       console.error(err);
@@ -58,11 +54,12 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
     try {
       setError('');
-      await signInWithGoogle();
-      // Auth callback will handle the redirect
+      setLoading(true);
+      await initiateGoogleLogin();
+      // The page will redirect to Google
     } catch (err) {
-      setError('Failed to sign up with Google');
-      console.error(err);
+      setError(err.message || 'Failed to initiate Google signup');
+      setLoading(false);
     }
   };
 
@@ -150,6 +147,7 @@ const Signup = () => {
             type="button" 
             className="btn btn-google auth-submit" 
             onClick={handleGoogleSignup}
+            disabled={loading}
           >
             <img 
               src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg" 

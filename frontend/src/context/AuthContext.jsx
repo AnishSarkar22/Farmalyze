@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { supabase } from '../config/supabase';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { logoutJWT } from "../utils/auth";
 
 const AuthContext = createContext(null);
 
@@ -10,67 +10,73 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem("jwt"));
 
+  // Listen for JWT changes in localStorage (e.g., login/logout from other tabs)
   useEffect(() => {
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        // Check backend session first
-        const backendResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/session`, {
-          credentials: 'include'
-        });
-        const backendData = await backendResponse.json();
-
-        if (backendData.session) {
-          setCurrentUser(backendData.session.user);
-          setLoading(false);
-          return;
-        }
-
-        // Fallback to Supabase session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (mounted && session?.user) {
-          setCurrentUser(session.user);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        if (mounted) setLoading(false);
-      }
+    const onStorage = (e) => {
+      if (e.key === "jwt") setToken(e.newValue);
     };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (mounted) {
-          setCurrentUser(session?.user ?? null);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription?.unsubscribe();
-    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const login = async (userData) => {
-    setCurrentUser(userData);
+  // Fetch session when token changes
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    const fetchSession = async () => {
+      if (!token) {
+        setCurrentUser(null);
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/session`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include",
+          }
+        );
+        if (!res.ok) {
+          localStorage.removeItem("jwt");
+          setCurrentUser(null);
+        } else {
+          const user = await res.json();
+          setCurrentUser(user);
+        }
+      } catch {
+        setCurrentUser(null);
+      }
+      if (mounted) setLoading(false);
+    };
+    fetchSession();
+    return () => {
+      mounted = false;
+    };
+  }, [token]);
+
+  const login = async () => {
+    setToken(localStorage.getItem("jwt"));
     return true;
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setCurrentUser(null);
+    try {
+      await logoutJWT(); // This will remove JWT from localStorage
+    } finally {
+      setToken(null);
+      setCurrentUser(null);
+    }
   };
 
   const value = {
     currentUser,
     login,
     logout,
-    loading
+    loading,
+    token,
   };
 
   return (
