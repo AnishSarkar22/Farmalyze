@@ -7,8 +7,6 @@
 - [Plant Disease Detection Dataset](https://www.kaggle.com/vipoooool/new-plant-diseases-dataset) – The New Plant Diseases Dataset contains approximately 87,900 RGB images of healthy and diseased crop leaves, categorized into 38 classes, with an 80/20 train-validation split for robust plant disease classification.
 - [Plant Disease Identification Model](https://huggingface.co/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification) - A pre-trained MobileNetV2 model hosted on Hugging Face, fine-tuned on the Kaggle Plant Diseases Dataset. Supports identification of 38 different plant diseases across various crop species.
 
----
-
 ## 🌱 Overview
 
 Agriculture plays a vital role in economic development, especially in countries like India, where a large portion of the population depends on farming for livelihood. Leveraging **Machine Learning**, **Deep Learning**, and **IoT**, this project aims to assist farmers in making data-driven decisions.
@@ -18,8 +16,6 @@ This web-based platform includes three key applications:
 - 🌾 Crop Recommendation
 - 💊 Fertilizer Suggestion
 - 🦠 Plant Disease Detection
-
----
 
 ## 🚀 Applications
 
@@ -31,14 +27,10 @@ This web-based platform includes three key applications:
   - Enter N-P-K values as a ratio.  
   - Use well-known city names to ensure compatibility with the weather API.
 
----
-
 ### 💊 Fertilizer Suggestion System
 
 - **Input**: Soil nutrient values and selected crop
 - **Output**: Recommends necessary fertilizers by identifying nutrient deficiencies or excesses in the soil.
-
----
 
 ### 🦠 Plant Disease Detection System
 
@@ -51,8 +43,6 @@ This web-based platform includes three key applications:
     - Treatment and prevention suggestions
 
 > ⚠️ Currently supports a limited number of crops.
-
----
 
 ## 🛠️ Tech Stack
 
@@ -108,8 +98,6 @@ This web-based platform includes three key applications:
 - **Authentication**: Google OAuth
 - **Image Processing**: Server-side with PyTorch/PIL
 
----
-
 ## 💻 How to Use
 
 - **Crop Recommendation**  
@@ -120,8 +108,6 @@ This web-based platform includes three key applications:
 
 - **Disease Detection**  
   ➤ Upload a clear image of the plant leaf. The system will detect the disease (if any) and provide relevant info and solutions.
-
----
 
 ## System Architecture
 
@@ -281,8 +267,6 @@ sequenceDiagram
     F-->>U: Authenticated session
 ```
 
----
-
 ## ❓ How to Run Project
 
 ### For backend
@@ -354,8 +338,6 @@ sequenceDiagram
   >  deactivate
   > ```
 
----
-
 ## 🤝 Contribution
 
 Special thanks to **[Soumalya](https://github.com/soumalyasmp)** for their invaluable contributions to the frontend
@@ -366,13 +348,9 @@ Feel free to fork this repository and contribute by:
 - Improving model accuracy
 - Enhancing UI/UX
 
----
-
 ## 📬 Contact
 
 For queries or suggestions, feel free to open an issue or reach out!
-
----
 
 ## 💳 License
 
