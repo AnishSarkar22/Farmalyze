@@ -115,8 +115,6 @@ This web-based platform includes three key applications:
 graph TB
     subgraph "Client Layer"
         A[React Frontend<br/>Vite + React 19]
-        B[Three.js 3D Graphics]
-        C[Responsive UI/UX]
     end
 
     subgraph "Authentication Layer"
@@ -166,8 +164,6 @@ graph TB
 
     %% Frontend to API
     A --> G
-    B --> A
-    C --> A
 
     %% Authentication Flow
     A --> D
